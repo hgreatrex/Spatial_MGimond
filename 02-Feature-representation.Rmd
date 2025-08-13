@@ -3,6 +3,12 @@
 # Feature Representation {#chp02_0}
 
 
+## Introduction
+
+Before we can analyze or visualize spatial data in a GIS, we must first decide how to represent real-world phenomena in a digital environment. This chapter introduces the foundational data models used in GIS-**vector** and **raster**-and explores how different types of geographic features are encoded using these models. Understanding how features are represented is essential for making informed decisions about data collection, storage, analysis, and visualization.
+
+We’ll also examine conceptual frameworks such as the **object** vs. **field** view of the world, the role of scale in determining how features are modeled, and how attribute data are structured and classified. These concepts form the backbone of spatial data modeling and are critical for interpreting and working with spatial data effectively throughout the rest of the course.
+
 ## Vector vs. Raster
 
 To work in a GIS environment, real world observations (objects or events that can be recorded in 2D or 3D space) need to be reduced to spatial entities. These spatial entities can be represented in a GIS as a **vector data model** or a **raster data model**. 
@@ -16,6 +22,10 @@ knitr::include_graphics("img/vector_vs_raster.jpg")
 ### Vector
 
 Vector features can be decomposed into three different geometric primitives: **points**, **polylines** and **polygons**.
+
+Vector data models are used to represent discrete features like roads, buildings and boundaries. They also benefit from supporting rich attribute data and precise geometry.
+
+Let’s explore how different types of features are represented using the vector model.
 
 #### Point
 
@@ -82,50 +92,75 @@ par(OP)
 
 ```
 
-A raster data model uses an array of cells, or pixels, to represent real-world objects. Raster datasets are commonly used for representing and managing imagery, surface temperatures, digital elevation models, and numerous other entities.
+A raster data model uses an array of cells, or pixels, to represent real-world objects. Raster datasets are commonly used for representing and managing imagery, surface temperatures, digital elevation models, and any other continuous data. 
 
-A raster can be thought of as a special case of an area object where the area is divided into a regular grid of cells. But a regularly spaced array of marked points may be a better analogy since rasters are stored as an array of values where each cell is defined by a single coordinate pair inside of most GIS environments.
+A raster can be thought of as a special case of an area object where the area is divided into a regular grid of cells. While rasters are often described as grids of cells, they can also be thought of as arrays of spatially referenced values, each tied to a specific location in space.
 
-Implicit in a raster data model is a value associated with each cell or pixel. This is in contrast to a vector model that may or may not have a value associated with the geometric primitive.
+In a raster data model, each cell (or pixel) is explicitly associated with a value, representing a measurement or classification at that location. This contrasts with the vector model, where attribute values are linked to geometric features (points, lines, or polygons) and may not be defined for every location in space.
 
-Also note that a raster data structure is square or rectangular. So, if the features in a raster do not cover the full square or rectangular extent, their pixel values will be set to no data values (e.g. `NULL` or `NoData`).
+Raster datasets are organized as regular grids—typically square or rectangular in shape. If the spatial features of interest do not occupy the entire extent of the grid, the remaining cells are assigned special values such as `NULL` or `NoData` to indicate the absence of valid data.
 
 ## Object vs. Field
 
-The traditional vector/raster perspective of our world is one that has been driven by software and data storage environments. But this perspective is not particularly helpful if one is interested in analyzing the pattern. In fact, it can mask some important properties of the entity being studied. An object vs. field view of the world proves to be more insightful even though it may seem more abstract.
+While the vector/raster distinction focuses on data structure, the **object** vs. **field** perspective focuses on how we **conceptualize** spatial phenomena. This distinction is especially useful when deciding how to model and analyze different types of spatial features. 
 
 ### Object View
 
-An object view of the world treats entities as discrete objects; they need not occur at every location within a study area. Point locations of cities would be an example of an object. So would be polygonal representations of urban areas which may be non-contiguous.
+The object view treats spatial features as discrete entities that exist independently and occupy specific locations. These features do not occur everywhere in space. Examples include point locations of cities, road networks, or polygonal representations of land parcels or urban areas. Objects are typically represented using the vector data model.
 
 ### Field View
 
-A field view of the world treats entities as a scalar field. This is a mathematical concept in which a scalar is a quantity having a magnitude. It is measurable at every location within the study region. Two popular examples of a scalar field are surface elevation and surface temperature. Each represents a property that can be measured at any location. 
+The field view treats spatial phenomena as *continuous surfaces* or distributions that vary across space. A field is a property that can be measured at any location within a study area. Common examples include surface elevation, temperature, or precipitation. These are typically represented using the raster data model.
 
-Another example of a scalar field is the presence and absence of a building. This is a binary scalar where a value of 0 is assigned to a location devoid of buildings and a value of 1 is assigned to locations having one or more buildings. A field representation of buildings may not seem intuitive, in fact, given the definition of an object view of the world in the last section, it would seem only fitting to view buildings as objects. In fact, buildings can be viewed as both field or objects. The context of the analysis is ultimately what will dictate which view to adopt. If we're interested in studying the distribution of buildings over a study area, then an object view of the features makes sense. If, on the other hand, we are interested in identifying all locations where buildings don't exist, then a binary field view of these entities would make sense.
+Some features can be represented as either *objects* or *fields*, depending on the analytical context. For instance, the presence or absence of buildings can be modeled as:
+
++ **Objects**, if we are interested in the location and shape of individual buildings.
++ **Fields**, if we are interested in identifying areas where buildings do or do not exist (e.g., using a binary raster where 1 = presence, 0 = absence).
+
+```{r filed-object, echo=FALSE, fig.cap = "Field and Object representation of buildings.", fig.width=6, fig.align='center', dpi = 96}
+
+knitr::include_graphics("img/field_vs_object.png")
+```
+
+
+Ultimately, the choice between object and field representations depends on the nature of the phenomenon and the goals of the analysis.
 
 ## Scale
 
-How one chooses to represent a real-world entity will be in large part dictated by the **scale** of the analysis. In a GIS, scale has a specific meaning: it's the ratio of distance on the map to that in the real world. So a **large scale** map implies a relatively large ratio and thus a small extent. This is counter to the layperson's interpretation of *large scale* which focuses on the scope or extent of a study; so a large scale analysis would imply one that covers a *large* area. 
+In GIS, **scale** refers to the ratio between a distance on the map and the corresponding distance in the real world. For example, a scale of 1:10,000 means that one unit on the map represents 10,000 units on the ground.
 
-The following two maps represent the same entity: the Boston region. At a small scale (e.g. 1:10,000,000), Boston and other cities may be best represented as points. At a large scale (e.g. 1:34,000), Boston may be best represented as a polygon. Note that at this large scale, roads may also be represented as polygon features instead of polylines.
+It’s important to distinguish between two uses of the term:
 
-```{r echo=FALSE, fig.cap = "Map of the Boston area at a 1:10,000,000 scale. Note that in geography, this is considered small scale whereas in layperson terms, this extent is often referred to as a large scale (i.e. covering a large area).", fig.width=3, fig.align='center'}
++ **Cartographic scale** refers to the map’s level of detail.
++ **Analytical scale** refers to the spatial extent or resolution of a study.
+
+In cartographic terms, a **large scale** map (e.g., 1:10,000) shows a small area in great detail, while a **small scale** map (e.g., 1:10,000,000) shows a large area with less detail. This is opposite to how *"large scale"* is often used in everyday language, where it implies a broad or extensive scope.
+
+The following two maps of the Boston region illustrate this difference:
+
++  At a small scale (1:10,000,000), Boston and other cities may be represented as simple points.
++  At a large scale (1:34,000), Boston may be represented as a detailed polygon, and roads may appear as polygons rather than simple lines.
+
+```{r echo=FALSE, fig.cap = "Map of the Boston area at a 1:10,000,000 scale. Note that in geography, this is considered small scale whereas in layperson terms, this extent is often referred to as a large scale (i.e. covering a large area).", fig.width=3.5, fig.align='center', dpi=60}
 
 knitr::include_graphics("img/Boston_small_scale.jpg")
 ```
 
 
-```{r echo=FALSE, fig.cap = "Map of the Boston area at a 1:34,000 scale. Note that in geography, this is considered large scale whereas in layperson terms, this extent is often referred to as a small scale (i.e. covering a small area).", fig.width=3, fig.align='center'}
+```{r echo=FALSE, fig.cap = "Map of the Boston area at a 1:34,000 scale. Note that in geography, this is considered large scale whereas in layperson terms, this extent is often referred to as a small scale (i.e. covering a small area).", fig.width=3.5, fig.align='center', dpi=60}
 
 knitr::include_graphics("img/Boston_large_scale.jpg")
 ```
 
+Understanding scale is essential for choosing appropriate data and representation methods in GIS analysis.
+
 ## Attribute Tables
 
-Non-spatial information associated with a spatial feature is referred to as an **attribute**. A feature on a GIS map is linked to its record in the attribute table by a unique numerical identifier (ID). Every feature in a layer has an identifier. It is important to understand the one-to-one or many-to-one relationship between feature, and attribute record. Because features on the map are linked to their records in the table, many GIS software will allow you to click on a map feature and see its related attributes in the table.  
+In GIS, **attributes** are non-spatial data that describe the characteristics of spatial features--such as a city’s population, a road’s name, or a parcel’s land use type. A feature on a GIS map is linked to its record in the attribute table by a unique numerical identifier (ID). 
 
-Raster data can also have attributes only if pixels are represented using a small set of unique integer values. Raster datasets that contain attribute tables typically have cell values that represent or define a class, group, category, or membership. NOTE: not all GIS raster data formats can store attribute information; in fact most raster datasets you will work with in this course will not have attribute tables.
+Each feature in a GIS layer is associated with one or more records in the attribute table, enabling a **one-to-one** or **many-to-one** relationship between geometry and descriptive data. Most GIS software allows users to click on a map feature and view its associated attributes directly.
+
+Raster datasets can also store attribute information, but only when pixel values represent discrete categories (e.g., land cover classes). In such cases, each unique integer value may correspond to a class label or description. However, most raster datasets used in this course will represent continuous data and will not include attribute tables. 
 
 ### Measurement Levels
 
@@ -141,7 +176,11 @@ Attribute data can be broken down into four **measurement levels**:
 
 ### Data type
 
-Another way to categorize an attribute is by its **data type**. ArcGIS supports several data types such as **integer, float, double and text**. Knowing your data type and measurement level should dictate how they are stored in a GIS environment. The following table lists popular data types available in most GIS applications.
+In GIS, choosing the correct **data type** for an attribute is essential for accurate data storage, efficient processing, and meaningful analysis. ArcGIS supports several common data types, including **integer**, **float**, **double**, and **text**. The choice of data type should align with the attribute’s measurement level and intended use.
+
+
+The following table summarizes popular data types available in most GIS applications:
+
 
 Type | Stored values                            | Note
 -----|------------------------------------------|-----
@@ -152,9 +191,10 @@ Double | -2.2 * E-308 to 1.8 * E308 | Real numbers
 Text | Up to 64,000 characters | Letters and words
 
 
-While whole numbers can be stored as a float or double (i.e. we can store the number 2 as 2.0) doing so comes at a cost: an increase in storage space. This may not be a big deal if the dataset is small, but if it consists of tens of thousands of records the increase in file size and processing time may become an issue.
+While whole numbers can be stored as floats or doubles (e.g., storing 2 as 2.0), doing so increases storage requirements. This may not be a concern for small datasets, but for large datasets with tens of thousands of records, it can impact file size and processing speed.
 
-While storing an integer value as a float may not have dire consequences, the same cannot be said of storing a float as an integer. For example, if your values consist of 0.2, 0.01, 0.34, 0.1 and 0.876, their integer counterpart would be 0, 0, 0, and 1 (i.e. values rounded to the nearest whole number). This can have a significant impact on a map as shown in the following example.
+Conversely, storing decimal values as integers can lead to significant data loss. For example, values such as 0.2, 0.01, 0.34, 0.1, and 0.876 would all round to either 0 or 1, obscuring meaningful differences. This can distort map outputs, especially in choropleth visualizations, where subtle variations are important as shown in the following two figures.
+
 
 ```{r echo=FALSE, fig.cap = "Map of data represented as decimal (float) values.",  fig.height=3, message=FALSE, warning=FALSE, results='hide', fig.align='center'}
 
@@ -186,3 +226,11 @@ tm_shape(eire) + tm_polygons("x.int", style = "fixed", breaks = round(brks,1),
   tm_text(text = "x.int", size = 0.6)
 
 ```
+
+## Summary
+
+This chapter introduces the foundational concepts of how geographic features are represented in a GIS environment. It begins by distinguishing between the two primary data models--*vector* and *raster*--and explains how real-world entities are encoded as points, lines, polygons, or grids of cells. 
+
+The discussion then shifts to conceptual frameworks, including the object vs. field view of spatial phenomena, which helps clarify how the same feature can be represented differently depending on the analytical context. The importance of scale is also addressed, with a focus on how map detail and spatial extent influence representation choices.
+
+Finally, the chapter explores attribute tables, which store non-spatial information linked to spatial features, and introduces key concepts such as measurement levels (nominal, ordinal, interval, ratio) and data types (integer, float, double, text). These distinctions are critical for ensuring accurate data storage, querying, and analysis in GIS workflows.

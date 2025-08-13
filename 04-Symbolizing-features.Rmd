@@ -1,13 +1,28 @@
 # Symbolizing features
 
+## Introduction
+
+Effective map design is not just about placing data on a map--it's about communicating information clearly and accurately. This chapter explores the principles and practices behind symbolizing spatial features, focusing on how color and classification schemes can be used to enhance the readability and interpretability of maps.
+
+The chapter begins by breaking down the three perceptual dimensions of color--**hue**, **lightness**, and **saturation**--and explains how each can be used to represent different types of data. It then introduces the concept of color spaces, including the commonly used HSV (Hue-Saturation-Value) model and perceptually accurate models like CIELAB and Munsell, highlighting how human perception of color can differ from software-generated color models.
+
+The chapter also covers classification schemes used in choropleth mapping:
+
++ **Qualitative** schemes for categorical data,
++ **Sequential** schemes for ordered data,
++ **Divergent** schemes for data with a meaningful midpoint.
+
+It emphasizes the importance of choosing appropriate classification intervals, such as **equal interval**, **quantile**, and **Jenks natural breaks**, and demonstrates how different choices can significantly affect the appearance and interpretation of a map.
+
+Finally, the chapter introduces tools like ColorBrewer, which help cartographers select color palettes that are visually effective, colorblind-safe, and suitable for grayscale printing.
 
 ## Color
 
-Each color is a combination of three perceptual dimensions: **hue**, **lightness** and **saturation**. 
+Color plays a central role in map design, influencing how effectively spatial patterns and relationships are communicated. In cartography, color is not just aesthetic--it encodes meaning and guides interpretation. To use color effectively, it’s important to understand its three perceptual dimensions: **hue**, **lightness** and **saturation**. These dimensions interact to shape how we perceive and differentiate features in a map features. In the following sections, we’ll explore each dimension and its implications for symbolizing different types of data.
 
 ### Hue
 
-**Hue** is the perceptual dimension associated with color names. Typically, we use different hues to represent different *categories* of data.
+**Hue** is the perceptual dimension most commonly associated with color names--such as red, green, or blue. In cartography, hue is typically used to represent **categorical** data, where each category is assigned a distinct color. This allows map readers to easily differentiate between classes without implying any order or magnitude. However, the choice of hues should be made carefully, as some colors may carry cultural connotations or be difficult to distinguish for individuals with color vision deficiencies. 
 
 ```{r f04-hue, fig.cap = "An example of eight different hues. Hues are associated with color names such as green, red or blue.", echo=FALSE, fig.height=0.2, fig.width = 3, fig.align='center'}
 
@@ -33,7 +48,7 @@ Note that magentas and purples are not part of the natural visible light spectru
 
 ### Lightness
 
-**Lightness** (sometimes referred to as *value*) describes how much light reflects (or is emitted) off of a surface. Lightness is an important dimension for representing ordinal/interval/ratio data. 
+**Lightness**--sometimes referred to as **value**--describes how much light is reflected or emitted from a surface, influencing how bright or dark a color appears. In cartographic design, lightness is particularly useful for symbolizing **ordinal**, **interval**, or **ratio** data, where a progression from light to dark can intuitively represent increasing values. Unlike hue, which separates categories, lightness enables us to show variation within a single category or color. However, care should be taken to maintain sufficient contrast between classes, especially in grayscale or colorblind-safe designs 
 
 ```{r f04-lightness, fig.cap = "Eight different hues (across columns) with decreasing lightness values (across rows).", echo=FALSE, fig.height=0.8, fig.width = 3,warning=FALSE, message=FALSE, fig.align='center'}
 
@@ -58,7 +73,7 @@ par(OP)
 
 ### Saturation
 
-**Saturation** (sometimes referred to as *chroma*) is a measure of a color's vividness. You can use saturated colors to help distinguish map symbols. But be careful when manipulating saturation, its property should be modified sparingly in most maps. 
+**Saturation**--also referred to as chroma--describes the intensity or vividness of a color. Highly saturated colors appear bold and vibrant, while low-saturation colors appear muted or grayish. In cartographic design, saturation can be used to **emphasize specific features** or categories, but it should be applied with care. Overuse can lead to visual clutter or misinterpretation, especially when combined with other color dimensions. Saturation is best used to subtly enhance contrast or draw attention to key map elements.
 
 ```{r f04-saturation,  fig.cap = "Eight different hues (across columns) with decreasing saturation values (across rows).", echo=FALSE, fig.height=0.8, fig.width = 3,warning=FALSE, message=FALSE, fig.align='center'}
 
@@ -87,19 +102,16 @@ par(OP)
 
 ## Color Space
 
-The three perceptual dimensions of color can be used to construct a 3D color space. This 3D space need not be a cube (as one would expect given that we are combining three dimensions) but a cone where lightness, saturation and hue are the cone's height, radius and circumference respectively.
+The three perceptual dimensions of color--hue, lightness, and saturation--can be visualized as forming a three-dimensional color space. While one might expect this space to be a **cube**, it is more accurately represented as a **cone**: hue wraps around the circumference, saturation extends outward from the center, and lightness runs vertically. 
 
 ```{r f04-color-space, echo=FALSE, fig.cap = "This is how the software defines the color space. But does this match our perception of color space?", fig.align='center'}
 
 knitr::include_graphics("img/Color_space_std_small.jpg")
 ```
 
-The cone shape reflects the fact that as one decreases saturation, the distinction between different hues disappears leading to a grayscale color (the central axis of the cone). So if one sets the saturation value of a color to `0`, the hue ends up being some shade of grey.
+This model helps explain how colors blend, fade, or become indistinguishable as saturation or lightness changes.
 
-The color space implemented in most software is symmetrical about the value/lightness axis. However, this is not how we "perceive" color space: our perceptual view of the color space is *not* perfectly symmetrical. 
-
-Let's examine a slice of the symmetrical color space along the blue/yellow hue axis at a lightness value of about 90%.
-
+However, most software-defined color spaces (like HSV) assume symmetry, which does not reflect how humans actually perceive color. For example, we can distinguish more shades of blue than yellow at the same saturation and lightness. 
 
 ```{r f04-munsell, fig.cap = "A cross section of the color space with constant hues and lightness values and decreasing saturation values where the two hues merge.", echo=FALSE, fig.height=.5, fig.width = 8, warning=FALSE, message=FALSE, fig.align='center'}
 
@@ -124,8 +136,7 @@ par(OP)
 
 ```
 
-Now, how many distinct yellows can you make out? How many distinct blues can you make out? Do the numbers match? Unless you have incredible color perception, you will probably observe that the number of distinct colors do not match when in fact they do! There are exactly 30 distinct blues and 30 distinct yellows. Let's add a border to each color to convince ourselves that the software did indeed generate the same number of distinct colors.
-
+How many distinct yellows can you perceive? How many distinct blues? Do the counts seem to match? Unless you have exceptionally acute color vision, you’ll likely notice a discrepancy--even though the software has generated exactly 30 distinct shades of each. To confirm this, we can add borders around each color swatch to visually verify that the number of distinct colors is indeed the same.
 
 ```{r f04-munsell-bis, fig.cap = "A cross section of the color space with each color distinctly outlined.", echo=FALSE, fig.height=.5, fig.width = 8, warning=FALSE, message=FALSE, fig.align='center'}
 
@@ -148,7 +159,7 @@ par(OP)
 ```
 
 
-It should be clear by now that a symmetrical color space does not reflect the way we "perceive" colors. There are more rigorously designed color spaces such as **CIELAB** and **Munsell** that depict the color space as a non-symmetrical object as perceived by humans. For example, in a Munsell color space, a vertical slice of the cone along the blue/yellow axis looks like this.
+y now, it should be evident that symmetrical color spaces—like those commonly used in software--do not accurately reflect how humans perceive color. Our visual system is more sensitive to certain hues and less so to others, resulting in perceptual asymmetries that these models fail to capture. More rigorously designed color spaces, such as **CIELAB** and **Munsell**, address this limitation by modeling color as a non-symmetrical space that better aligns with human perception. For instance, in the Munsell system, a vertical slice of the color cone along the blue/yellow axis reveals noticeable differences in how many distinct shades of each hue we can perceive.
 
 ```{r f04-munsell-slice, fig.cap = "A slice of the Munsell color space.", echo=FALSE, fig.height=2, fig.width = 4, warning=FALSE, message=FALSE, fig.align='center'}
 library(ggplot2)
@@ -160,15 +171,17 @@ par(OP)
 
 ```
 
-Note that based on the Munsell color space, we can make out fewer yellows than blues across all lightness values. In fact, for these two hues, we can make out only 29 different shades of yellow (we do not include the gray levels where saturation = `0`) vs 36 shades of blue.
+As illustrated by the Munsell color space, our ability to distinguish colors is not uniform across hues. For example, we can perceive fewer distinct shades of yellow than blue at comparable lightness levels. In one comparison, 29 unique shades of yellow were discernible (excluding grayscale values where saturation = 0), while 36 shades of blue were distinguishable.
 
-So how do we leverage our understanding of color spaces when choosing colors for our map features? The next section highlights three different color schemes: **qualitative**, **sequential** and **divergent**.
+This perceptual asymmetry has important implications for map design. So how can we apply our understanding of color spaces to make better choices when symbolizing features? The next section introduces three foundational color schemes--**qualitative**, **sequential** and **divergent**--each tailored to different types of data and mapping goals.
 
 ## Classification
 
+Once you've selected an appropriate color space, the next step is to determine how to apply color to your data. This involves choosing a classification scheme--a method for grouping data values into discrete **classes**, each of which is represented by a distinct **color swatch**. The choice of classification scheme depends on the nature of your data and the message you want your map to convey. In the following sections, we’ll explore three common approaches to classification: **qualitative**, **sequential**, and **divergent**.
+
 ### Qualitative color scheme
 
-Qualitative schemes are used to symbolize data having no inherent order (i.e. categorical data). Different hues with equal lightness and saturation values are normally used to distinguish different categorical values.  
+Qualitative color schemes are used to symbolize data that have no inherent order--such as categories or types. These schemes assign distinct hues to each class. To maintain perceptual balance, the hues are typically chosen to have equal lightness and saturation, ensuring that no category appears more prominent than another.  
 
 ```{r f04-qualitative,  fig.cap = "Example of four different qualitative color schemes. Color hex numbers are superimposed on each palette.", echo=FALSE, fig.height=1, fig.width = 4}
 
@@ -194,7 +207,7 @@ par(OP)
 
 ```
 
-Election results is an example of a dataset that can be displayed using a qualitative color scheme. But be careful in your choice of hues if a cultural bias exists (i.e. it may not make sense to assign "blue" to republican or "red"" to democratic regions).
+These schemes are ideal for mapping variables like land cover types, political affiliations, or survey responses. However, care should be taken when selecting hues, especially in contexts where cultural associations may influence interpretation. For example, it may not make sense to assign "blue" to Republican regions or "red"" to Democratic ones.
 
 ```{r f04-qualitative-map, fig.cap = "Map of 2012 election results shown in a qualitative color scheme. Note the use of three hues (red, blue and gray) of equal lightness and saturation.", echo=FALSE, fig.width = 4.5,fig.height=4, message=FALSE, fig.align='center'}
 
@@ -211,11 +224,9 @@ par(OP)
 
 ```
 
-Most maps created in this course will be generated from polygon layers where *continuous* values will be assigned discrete color swatches. Such maps are referred to as **choropleth** maps. The choice of classification schemes for choropleth maps are shown next.
-
 ### Sequential color scheme
 
-Sequential color schemes are used to highlight ordered data such as income, temperature, elevation or infection rates. A well designed sequential color scheme ranges from a light color (representing low attribute values) to a dark color (representing high attribute values). Such color schemes are typically composed of a single hue, but may include two hues as shown in the last two color schemes of the following figure.
+Sequential color schemes are used to represent data that follow a meaningful order, such as income, temperature, elevation, or infection rates. These schemes typically progress from light to dark, with lighter shades representing lower values and darker shades representing higher ones. This visual gradient helps convey magnitude and direction in the data. Most sequential schemes use a single hue, but some may incorporate two hues to emphasize a broader range of values. 
 
 ```{r f04-sequential,  fig.cap = "Example of four different sequential color schemes. Color hex numbers are superimposed on each palette.", echo=FALSE, fig.height=1, fig.width = 4, warning=FALSE, message=FALSE, fig.align='center'}
 n <- 6
@@ -238,7 +249,7 @@ text(x=seq(1,n, length.out=n), y=0.75, brewer.pal(n,"YlOrBr"),col="grey40",cex=0
 par(OP)
 ```
 
-Distribution of income is a good example of a sequential map. Income values are interval/ratio data which have an implied order. 
+The following example uses a sequential color scheme to map household income in Maine using a green-based scheme. 
 
 ```{r f04-sequential-map,  fig.cap = "Map of household income shown in a sequential color scheme. Note the use of a single hue (green) and 7 different lightness levels.", echo=FALSE, fig.width = 4.5, fig.height=4, fig.align='center'}
 
@@ -265,7 +276,11 @@ par(OP)
 
 ### Divergent color scheme
 
-Divergent color schemes apply to ordered data as well. However, there is an implied central value about which all values are compared. Typically, a divergent color scheme is composed of two hues--one for each side of the central value. Each hue's lightness/saturation value is then adjusted symmetrically about the central value. Examples of such a color scheme follows:
+Divergent color schemes are used to represent ordered data that revolve around a meaningful central value--such as a median, mean, or zero. These schemes are particularly effective when the goal is to highlight differences on either side of a reference point, making them well-suited for visualizing change, deviation, or polarity.
+
+A typical divergent scheme uses two contrasting hues—one for values below the center and one for values above. Lightness and saturation are adjusted symmetrically to reflect the magnitude of deviation from the central value. This approach helps viewers quickly identify extremes and interpret the direction and intensity of variation.
+
+The following examples showcase several divergent palettes:
 
 ```{r f04-divergent,  fig.cap = "Example of four different divergent color schemes. Color hex numbers are superimposed onto each palette.", echo=FALSE, fig.height=1, fig.width = 4, fig.align='center'}
 n <- 6
@@ -289,9 +304,9 @@ par(OP)
 
 ```
 
-Continuing with the last example, we now focus on the divergence of income values about the median value of $36,641. We use a brown hue for income values below the median and a green/blue hue for values above the median.
+Building on the previous example in section 4.4.2, we can also represent income data using a divergent color scheme--particularly useful when emphasizing variation around a central value. In this case, we center the scheme on the median household income of $36,641. Values below the median are shown using a brown hue, while values above the median are represented with a green-blue hue. Each hue is further divided into progressively lighter or darker shades to reflect the degree of deviation from the median, allowing for a more nuanced interpretation of income disparities across regions.
 
-```{r f04-divergent-map,  fig.cap = "This map of household income uses a divergent color scheme where two different hues (brown and blue-green) are used for two sets of values separated by the median income of 36,641 dollars. Each hue is then split into three separate colors using decreasing lightness values away from the median.", echo=FALSE, fig.height=4, fig.width = 4.5, warning=FALSE, message=FALSE, fig.align='center'}
+```{r f04-divergent-map,  fig.cap = "This map of household income uses a divergent color scheme where two different hues (brown and blue-green) are used for two sets of values separated by the median income of $36,641. Each hue is further divided into progressively lighter or darker shades.", echo=FALSE, fig.height=4, fig.width = 4.5, warning=FALSE, message=FALSE, fig.align='center'}
 
 n = 6
 brk <- classIntervals(s$Household_,n,style="quantile")
@@ -308,24 +323,24 @@ par(OP)
 
 ```
 
-## So how do I find a proper color scheme for my data?
+## Choosing an Appropriate Color Scheme
 
-Fortunately, there is a wonderful online resource that will guide you through the process of picking a proper set of color swatches given the nature of your data (i.e. sequential, diverging, and qualitative) and the number of intervals (aka classes). The website is [http://colorbrewer2.org/](http://colorbrewer2.org/) and was developed by Cynthia Brewer *et. al* at the Pennsylvania State University.
+Selecting the right color scheme for your map depends on both the nature of your data and the number of classes you wish to represent. Fortunately, tools like [ColorBrewer](http://colorbrewer2.org/)--developed by Cynthia Brewer and colleagues at Pennsylvania State University--offer curated palettes tailored to different data types: qualitative, sequential, and divergent. The site also provides guidance on choosing colorblind-safe schemes and palettes that translate well to grayscale, which is especially useful for print publications.
 
 ```{r echo=FALSE, fig.width=4, dpi=60, fig.align='center'}
 
 knitr::include_graphics("img/ColorBrewer.png")
 ```
 
-You'll note that the ColorBrewer website limits the total number of color swatches to 12 or less. There is a good reason for this in that our eyes can only associate so many different colors with value ranges/bins. Try matching 9 different shades of green in a map to the legend box swatches!
-
-Additional features available on that website include choosing colorblind safe colors and color schemes that translate well into grayscale colors (useful if your work is to be published in journals that do not offer color prints).
+One important design consideration is the number of color swatches used. ColorBrewer limits most schemes to 12 or fewer swatches, reflecting the reality that human perception struggles to reliably distinguish more than a handful of colors in a legend. For example, try matching nine shades of green in a map to their corresponding legend entries--it quickly becomes a challenge.
 
 ## Classification Intervals
 
-You may have noticed the use of different classification breaks in the last two maps. For the sequential color scheme map, an *equal interval* classification scheme was used where the full range of values in the map are split equally into 7 intervals so that each color swatch covers an equal range of values. The divergent color scheme map adopts a *quantile interval* classification where each color swatch is represented an equal number of times across each polygon. 
+The way data values are grouped into intervals can significantly affect how a map looks and how its patterns are interpreted. In the previous examples, two different classification schemes were used: an **equal interval** scheme for the sequential map and a **quantile interval** scheme for the divergent map.
 
-Using different classification intervals will result in different looking maps. In the following figure, three maps of household income (aggregated at the census tract level) are presented using different classification intervals: **quantile**, **equal** and **Jenks**. Note the different range of values covered by each color swatch.
+Classification intervals define how the full range of data is divided into discrete classes, each represented by a color swatch. Different schemes produce different visual outcomes, even when applied to the same dataset. For instance, **equal interval** schemes divide the data range into evenly spaced segments, which is useful for uniformly distributed data. In contrast, **quantile schemes** ensure that each class contains an equal number of features, which can help balance visual representation across a map.
+
+Other options include the **Jenks natural breaks** method which uses an algorithm to identify clusters in the data, optimizing class boundaries to reflect inherent groupings. The following figure compares these three schemes--quantile, equal interval, and Jenks--applied to the same income dataset. Notice how each scheme emphasizes different aspects of the distribution.
 
 
 ```{r diff-class, echo=FALSE,  dpi=60, fig.align='center', fig.cap="Three different representations of the same spatial data using different classification intervals."}
@@ -335,14 +350,14 @@ knitr::include_graphics("img/Three_breaks_compared_2.png")
 
 The **quantile interval** scheme ensures that each color swatch is represented an equal number of times. If we have 20 polygons and 5 classes, the interval breaks will be such that each color is assigned to 4 different polygons.
 
-The **equal interval** scheme breaks up the range of values into equal interval widths. If the polygon values range from 10,000 to 25,000 and we have 5 classes, the intervals will be [10,000 ; 13,000], [13,000 ; 16,000], ..., [22,000 ; 25,000].
+The **equal interval** scheme divides the range of values into equal interval widths. If the polygon values range from 10,000 to 25,000 and we have 5 classes, the intervals will be [10,000 ; 13,000], [13,000 ; 16,000], ..., [22,000 ; 25,000].
 
 The **Jenks interval** scheme (aka natural breaks) uses an algorithm that identifies clusters in the dataset. The number of clusters is defined by the desired number of intervals.
 
-It may help to view the breaks when superimposed on top of a distribution of the attribute data. In the following graphics the three classification intervals are superimposed on a histogram of the per-household income data. The histogram shows the distribution of values as “bins” where each bin represents a range of income values. The y-axis shows the frequency (or number of occurrences) for values in each bin.
+It may help to view the breaks when superimposed on top of a distribution of the attribute data. In the following figure. the three classification intervals are superimposed on a histogram of the per-household income data. The histogram shows the distribution of values as “bins” where each bin represents a range of income values. The y-axis shows the frequency (or number of occurrences) for values in each bin.
 
 
-```{r f04-three-breaks, echo=FALSE, fig.cap = "Three different classification intervals used in the three maps. Note how each interval scheme encompasses different ranges of values (hence the reason all three maps look so different).", dpi=60, fig.align='center'}
+```{r f04-three-breaks, echo=FALSE, fig.cap = "Three different classification intervals used in the three maps. Note how each interval scheme encompasses different ranges of values.", dpi=60, fig.align='center'}
 
 knitr::include_graphics("img/Three_hist_intervals.png")
 ```
@@ -354,3 +369,16 @@ The following interactive frame demonstrates the different "looks" a map can tak
 ```{r echo = FALSE, out.width="780px"}
 knitr::include_app("https://hobbes.colby.edu/Manny/Classification/", height = "530px")
 ```
+
+## Summary
+
+This chapter introduces key principles for symbolizing spatial data using color and classification schemes to improve map readability and interpretation.
+
++ Color Dimensions: Explains how hue, lightness, and saturation represent different data types—categorical, ordered, and intensity-based—and how they interact perceptually.
++ Color Spaces: Highlights the limitations of symmetrical models like HSV and introduces perceptually accurate alternatives such as CIELAB and Munsell.
++ Classification Schemes: Describes three main approaches:
+    + Qualitative for unordered categories,
+    + Sequential for ordered data,
+    + Divergent for data centered around a meaningful midpoint.
++ Color Selection Tools: Introduces ColorBrewer for choosing effective, accessible palettes.
++ Classification Intervals: Compares equal interval, quantile, and Jenks natural breaks, showing how each affects data representation.

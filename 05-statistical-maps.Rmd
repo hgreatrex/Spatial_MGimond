@@ -16,11 +16,18 @@ ma <- readRDS("Data/ma2.rds")
 ```
 
 
+## Introduction
+
+In the previous chapter, we explored how visual variables--particularly color--can be used to symbolize spatial features. We examined the perceptual dimensions of hue, lightness, and saturation, and how different color schemes (qualitative, sequential, and divergent) can be matched to the nature of the data being mapped. We also saw how classification intervals influence the appearance and interpretability of choropleth maps.
+
+This chapter builds on those foundations by shifting focus from the aesthetics and perception of map design to the **statistical logic** behind classification schemes. Rather than choosing breaks arbitrarily or purely for visual balance, we explore how statistical principles can guide the discretization of continuous spatial data. This includes methods such as equal intervals, quantiles, boxplots, and standard deviation units, each offering a different lens through which to interpret spatial distributions.
+
+We also extend the discussion to mapping uncertainty, a critical but often overlooked aspect of spatial analysis. Many datasets--especially those derived from surveys--carry margins of error or standard errors that affect how confidently we can interpret mapped patterns. This chapter introduces techniques for visualizing uncertainty and simulating its impact on spatial rankings and statistical relationships.
+
+
 ## Statistical distribution maps
 
-The previous chapter demonstrated how the choice of a classification scheme can generate different *looking* maps. Your choice of classification breaks should be driven by the data. This chapter will focus on statistical approaches to generating classification breaks. 
-
-Many spatial datasets consist of continuous values. As such, one can have as many unique values as there are unique polygons in a data layer. For example, a Massachusetts median household income map where a unique color is assigned to each unique value will look like this:
+Many spatial datasets contain continuous variables, meaning that each geographic unit--such as a polygon in a data layer--can have a unique value. When these values are mapped using a one-to-one color assignment, the result is a type of thematic map known as a **choropleth map**, where each polygon is shaded according to its attribute value.  For example, a map of Massachusetts showing median household income with a unique color for each tract would produce a visually complex and potentially overwhelming display. 
 
 ```{r continuous, fig.width = 6.5, fig.height=2.5, echo=FALSE, fig.cap = "Example of a continuous color scheme applied to a choropleth map.", fig.align='center'}
 library(ggplot2)
@@ -35,7 +42,7 @@ ggplot(ma, aes(fill=house_inc)) + geom_sf() + theme_void() +
 
 ```
 
-Such a map may not be as informative as one would like it to be. In statistics, we seek to reduce large sets of continuous values to discrete entities to help us better "handle" the data. In the field of statistics, discretization of values can take on the form of a histogram where values are assigned to one of several equal width bins. A choropleth map classification equivalent is the equal interval classification scheme. 
+While technically accurate, such maps often obscure broader patterns and make interpretation difficult. To address this, we turn to statistical classification methods that group continuous values into meaningful categories, allowing for clearer visual communication and more effective spatial analysis. 
 
 ```{r equalint, fig.width = 6.5, fig.height=2.5, echo=FALSE, fig.cap = "An equal interval choropleth map using 10 bins.", fig.align='center'}
 clint <- classIntervals(ma$house_inc, style = "equal", n = 10)$brks
@@ -60,13 +67,15 @@ p2<- ggplot(ma, aes(house_inc)) + geom_histogram(bins = 10) +
 grid.arrange(p1,p2, layout_matrix=rbind(c(1,1,1,2)))
 ```
 
-The histogram in the above figure is "flipped" so as to match the bins with the color swatches. The length of each grey bin reflects the number of polygons assigned their respective color swatches.
+The histogram accompanying the map is rotated vertically to align each bin with its corresponding color swatch. The length of each gray bar in the histogram reflects the number of polygons assigned to each color category, offering a quick sense of how values are distributed across the map.
 
-An equal interval map benefits from having each color swatch covering an equal range of values. This makes is easier to compare differences between pairs of swatches. Note that a sequential color scheme is used since there is no implied central value in this classification scheme.
+An equal interval classification scheme divides the full range of data values into intervals of equal width. This approach ensures that each color swatch represents the same span of values, making it easier to compare differences between categories. Because this method does not assume a central reference point, a sequential color scheme—typically progressing from light to dark—is used to convey increasing magnitude.
 
 ### Quantile map
 
-While an equal interval map benefits from its intuitiveness, it may not be well suited for data that are not uniformly distributed across their range (note the disproportionate distribution of observations in each color bin in the above figure). Quantiles define ranges of values that have equal number of observations. For example, the following plot groups the data into six quantiles with each quantile representing the same number of observations (Exceptions exist when multiple observations share the same exact value).
+While equal interval classification offers intuitive comparisons by assigning each color swatch an equal range of values, it can be misleading when the data are unevenly distributed. In such cases, many polygons may cluster within a few intervals, leaving others sparsely populated. This imbalance can obscure meaningful spatial patterns.
+
+Quantile classification addresses this issue by dividing the data into intervals that each contain an equal number of observations. For example, a map using six quantiles ensures that each color swatch is applied to approximately the same number of polygons. This approach enhances the map's exploratory power and can help reveal spatial clusters that might be hidden in an equal interval map.
 
 ```{r quantile, fig.width = 6.5, fig.height=2.5, echo=FALSE, fig.cap = "Example of a quantile map.", fig.align='center'}
 clint <- classIntervals(ma$house_inc, style = "quantile", n = 6)$brks
@@ -97,7 +106,11 @@ You'll note the differing color swatch *lengths* in the color bar reflecting the
 
 ### Boxplot map
 
-The discretization of continuous values can also include measures of centrality (e.g. the mean and the median) and  measures of spread (e.g. standard deviation units) with the goal of understanding the nature of the distribution such as its shape (e.g. symmetrical, skewed, etc...) and range. The boxplot is an example of statistical plot that offers both. This plot reduces the data to a five summary statistics including the median, the upper and lower quartiles (within which 50% of the data lie--also known as the interquartile range,IQR), and upper and lower "whiskers" that encompass 1.5 times the interquartile range. The boxplot may also display "outliers"--data points that may be deemed unusual or not characteristic of the bulk of the data.
+Another approach to classifying continuous spatial data is to use **summary statistics** that describe the distribution’s central tendency and spread. The **boxplot**, a common statistical visualization, provides five summary statistics including the median, the upper and lower quartiles (within which 50% of the data lie--also known as the interquartile range,IQR), and upper and lower "whiskers" that encompass 1.5 times the interquartile range. The boxplot may also display "outliers"--data points that may be deemed unusual or not characteristic of the bulk of the data.
+
+In the context of mapping, these summary statistics can be used to define classification breaks. A **boxplot map** applies color swatches to polygons based on where their values fall within the boxplot-defined intervals. 
+
+This method is particularly useful when the goal is to highlight the shape of the distribution--whether it is symmetrical, skewed, or contains outliers. Because the boxplot includes a measure of centrality (the median), a divergent color scheme is often appropriate. This allows the map to visually emphasize deviations from the center, helping to identify regions that are unusually high or low relative to the bulk of the data.
 
 ```{r boxmap, fig.width = 6.5, fig.height = 2.56, echo = FALSE, fig.cap = "Example of a boxplot map.", fig.align='center'}
 clint <- classIntervals(ma$house_inc, style = "box")$brks
@@ -125,18 +138,20 @@ p2<- ggplot(ma, aes(house_inc)) + geom_boxplot() +
 grid.arrange(p1,p2, layout_matrix=rbind(c(1,1,1,2)))
 ```
 
-Here, we make use of a divergent color scheme to take advantage of the implied measure of centrality (i.e. the median). 
+Boxplot maps strike a balance between statistical rigor and visual interpretability. They are especially effective when the data distribution is not normal and when understanding the spread and extremes is as important as identifying central values.
 
 ### IQR map
 
-The IQR map is a reduction of the boxplot map whereby we reduce the classes to just three: the interquartile range (IQR) and the upper and lower extremes. The map's purpose is to highlight the polygons covering the mid 50% range of values. This mid range usually benefits from a darker hue to help distinguish it from the upper and lower sets of values.
+The **interquartile range (IQR) map** is a simplified version of the boxplot map that focuses on the middle 50% of the data. Instead of dividing the distribution into multiple segments, the IQR map reduces the classification to just three categories: values within the IQR, values below the IQR, and values above the IQR.
+
+This approach is particularly useful when the goal is to highlight the "core" of the distribution--those observations that are neither exceptionally high nor low. By emphasizing the middle range, the IQR map can reveal spatial patterns that are less influenced by outliers or extreme values. For example, while previous maps may have consistently emphasized an east-west gradient in income across Massachusetts, the IQR map may show that middle-income households are more evenly distributed across the state.
 
 ```{r iqrmap, fig.width = 6.5, fig.height = 2.56, echo = FALSE, fig.cap = "Example of an IQR map.", fig.align='center'}
 clint <- classIntervals(ma$house_inc, style = "box")$brks
 clint <- clint[c(1,3,5,7)]
 
 p1 <- ggplot(ma, aes(fill=house_inc)) + geom_sf(col="grey70") + theme_void() +
-  scale_fill_stepsn(colors = c("#FFA50000", "#875A59", "#00660000") ,
+  scale_fill_stepsn(colors = c("#FFA50000", "black", "#00660000") ,
                     breaks = clint[1:(length(clint)) ],
                     values = scales::rescale(clint[1:(length(clint)) ], c(0,1)),
                     guide = guide_coloursteps(even.steps = FALSE,
@@ -157,11 +172,17 @@ p2<- ggplot(ma, aes(house_inc)) + geom_boxplot() +
 grid.arrange(p1,p2, layout_matrix=rbind(c(1,1,1,2)))
 ```
 
-The IQR map differs from the preceding maps shown in this chapter in that upper and lower values are no longer emphasized--whether implicitly or explicitly. While these maps consistently highlighted the prominent east-west gradient in income values with the higher values occurring in the east and the lower values occurring in the west, the IQR map reveals that the distribution of middle income households follows a pattern that is more dispersed across the state of Massachusetts. 
+Visually, the IQR category benefits from being assigned a darker hue to distinguish it from the lighter tones used for the upper and lower extremes. This design choice helps draw attention to the central portion of the data while still acknowledging regions with higher and lower values.
 
 ### Standard deviation map
 
-If the data distribution can be approximated by a *Normal* distribution (a theoretical distribution defined by a mathematical function), the classification scheme can be broken up into different standard deviation units.
+When a dataset approximates a normal (bell-shaped) distribution, classification based on standard deviation units can be a powerful way to highlight how values deviate from the mean. In a **standard deviation map**, class breaks are defined at regular intervals above and below the **mean**--typically at ±1, ±2, and ±3 standard deviations. This creates a symmetrical classification scheme centered on the average value.
+
+Each class represents a specific range of deviation from the mean, making it easy to identify which regions fall within the expected range and which stand out as unusually high or low. For example, areas within one standard deviation of the mean might be considered typical, while those beyond two or three standard deviations may be flagged as exceptional.
+
+This method is particularly useful when the data are approximately normally distributed and when the goal is to emphasize variation relative to the average. A divergent color scheme is typically used, with a neutral color at the mean and increasingly intense hues in opposite directions to represent values above and below the mean.
+
+This method is particularly useful when the data are approximately normally distributed and when the goal is to emphasize variation relative to the average. A divergent color scheme is typically used, with a neutral color at the mean and increasingly intense hues in opposite directions to represent values above and below the mean.
 
 ```{r sdmap, fig.width = 6.5, fig.height = 2.56, echo = FALSE, fig.cap = "Example of a standard deviation map.", fig.align='center'}
 inc_sd <- sd(ma$house_inc)
@@ -199,16 +220,17 @@ p2<- ggplot(ma, aes(house_inc)) +
 grid.arrange(p1,p2, layout_matrix=rbind(c(1,1,1,2)))
 ```
 
-You'll note from the figure that the income data do not follow a Normal distribution exactly--they have a slight skew toward higher values.  This results in more polygons being assigned higher class breaks than lower ones. 
-
+However, caution is warranted when applying this method to skewed data (as seems to the be the case in the working example). If the distribution is not symmetrical, the resulting map may misrepresent the data by assigning more polygons to one side of the mean. In such cases, the visual balance of the map may not reflect the actual distribution of values.
 
 ### Outlier maps
 
-So far, emphasis has been placed on the distribution of values which attempts to place emphasis on the *full* range of values. However, there may be times when we want to place emphasis on the extreme values. For example, we may want to generate a map that identifies the regions with unusually high or unusually low values. What constitutes an outlier can be subjective. For this reason, we will rely on statistical techniques covered in the last section to help characterize regions with unusually high and/or low values. 
+While previous classification schemes aim to represent the full range or central tendencies of a dataset, **outlier maps** focus specifically on identifying and emphasizing extreme values--those that fall significantly above or below the bulk of the distribution. These maps are particularly useful when the goal is to highlight regions that deviate sharply from expected norms, such as areas with unusually high income, low population density, or elevated disease rates.
+
+Outliers can be defined in several ways, depending on the statistical framework used. Examples of **boxplot outlier map**, **standard deviation outlier map** and **quantile otulier map** follow. 
 
 #### Boxplot outlier map
 
-We can tweak the boxplot map from the last section by assigning darker hues to observations outside the whiskers (outliers) and a single light colored hue to all other values. By minimizing the range of color swatches, we place emphasis on the outliers.
+A boxplot outlier map identifies values that fall outside the whiskers of a boxplot--typically 1.5 times the interquartile range (IQR) above the lower and upper quartiles. These regions are often assigned darker hues, while all other values are grouped into a single lighter category to draw attention to the extremes.
 
 ```{r outlier1, fig.width = 6.5, fig.height = 2.56, echo = FALSE, fig.cap = "Example of a boxplot outlier choropleth map.", fig.align='center'}
 clint <- classIntervals(ma$house_inc, style = "box")$brks
@@ -235,11 +257,11 @@ p2<- ggplot(ma, aes(house_inc)) + geom_boxplot() +
 grid.arrange(p1,p2, layout_matrix=rbind(c(1,1,1,2)))
 ```
 
-You'll note the asymmetrical distribution of outliers with a bit more than a dozen regions with unusually high income values and just one region with unusually low income values.
+You'll note the asymmetrical distribution of outliers with a little over a dozen regions with unusually high income values and just one region with unusually low income values.
 
-#### Standard deviation outliers
+#### standard deviation outlier map
 
-In this next example, we use the +/- 2 standard deviation bounds from the *Normal* distribution to identify outliers in the income data. Hence, if the data were to follow a perfectly Normal distribution, this would translate to roughly the top 2.5% and bottom 2.5% of the distribution.
+A standard deviation outlier map flags values beyond ±2 standard deviations from the mean. If the data follow a normal distribution, this corresponds to roughly the top and bottom 2.5 percent of observations. These outliers are visually emphasized using a divergent color scheme, often with neutral tones for typical values and saturated colors for extremes.
 
 ```{r outlier2, fig.width = 6.5, fig.height = 2.56, echo = FALSE, fig.cap = "Example of a standard deviation outlier choropleth map.", fig.align='center'}
 inc_sd <- sd(ma$house_inc)
@@ -275,9 +297,9 @@ p2<- ggplot(ma, aes(house_inc)) +
 grid.arrange(p1,p2, layout_matrix=rbind(c(1,1,1,2)))
 ```
 
-#### quantile outliers
+#### Quantile otulier map
 
-In this last example, we'll characterize the top and bottom 2.5% of values as outliers by splitting the data into 40 quantiles then maping the top and bottom quantiles to capture the 2.5% fo values.
+A quantile outlier map defines outliers based on percentile thresholds. For instance, the top and bottom 2.5% of values can be isolated by dividing the data into 40 quantiles and mapping only the outermost ones. This method is especially useful when the data distribution is skewed or non-normal.
 
 ```{r outlier3, fig.width = 7.3, fig.height = 2.56, echo = FALSE, fig.cap = "Example of a quantile outlier choropleth map where the top and bottom 2.5% regions are characterized as outliers.", fig.align='center'}
 clint <- classIntervals(ma$house_inc, style = "quantile", n = 40)$brks
@@ -315,9 +337,11 @@ grid.arrange(p1,p2, layout_matrix=rbind(c(1,1,1,2)))
 
 ## Mapping uncertainty
 
-Many census datasets such as the U.S. Census Bureau's American Community Survey (ACS) data are based on surveys from small samples. This entails that the variables provided by the Census Bureau are only estimates with a level of uncertainty often provided as a margin of error (MoE)  or a standard error (SE). Note that the Bureau's MoE encompasses a 90% confidence interval^[The Bureau's MoE can be computed from the SE as follows: $MoE = 1.645 \times SE$] (i.e. there is a 90% chance that the MoE range covers the true value being estimated). This poses a challenge to both the visual exploration of the data as well as any statistical analyses of that data.
+Many spatial datasets--particularly those derived from surveys like the U.S. Census Bureau’s American Community Survey (ACS)--are not direct measurements but estimates accompanied by a measure of uncertainty. This uncertainty is often expressed as a **margin of error (MoE)** or a **standard error (SE)**, which reflects the confidence we have in the reported values. For example, the ACS uses a 90% confidence interval, meaning there is a 90% chance that the true value lies within the reported range.
 
-One approach to mapping both estimates *and* SE's is to display both as side-by-side maps.
+Mapping such data presents a challenge: how do we visualize both the estimate and its uncertainty in a way that supports meaningful spatial interpretation?
+
+One common approach is to display side-by-side maps—one showing the estimated values and another showing the associated SE or MoE. 
 
 ```{r f07-map1, message=FALSE,warning=FALSE,echo=FALSE,fig.width = 7, fig.height = 3, fig.fullwidth = TRUE, fig.cap = "Maps of income estimates (left) and associated standard errors (right).", fig.align='center'}
 library(RColorBrewer)
@@ -332,16 +356,14 @@ print(P1, split=c(1, 1, 2, 1), more=TRUE)
 print(P2, split=c(2, 1, 2, 1), more=FALSE) 
 ```
 
-While there is nothing inherently wrong in doing this, it can prove to be difficult to mentally process the two maps, particularly if the data consist of hundreds or thousands of small polygons.
-
-Another approach is to overlay the measure of uncertainty (SE or MoE) as a textured layer on top of the income layer.
+An alternative is to overlay uncertainty directly onto the estimate map using textures or hatch marks. For example, a map of income estimates might use shades of green to represent income levels, with different hatch patterns indicating the degree of uncertainty. This approach allows viewers to assess both value and reliability simultaneously.
 
 ```{r f07-map2, echo=FALSE, fig.cap = "Map of estimated income (in shades of green) superimposed with different hash marks representing the ranges of income SE.", out.width=400, fig.align='center'}
 
 knitr::include_graphics("img/Income_and_uncertainty.jpg")
 ```
 
-Or, one could map both the upper and lower ends of the MoE range side by side.
+Another technique involves mapping the upper and lower bounds of the confidence interval as separate maps. This can help visualize the full range of possible values but may still suffer from the same interpretive challenges as side-by-side maps.
 
 ```{r f07-map-MoE, message=FALSE,warning=FALSE,echo=FALSE,fig.width = 7, fig.height = 3, fig.fullwidth = TRUE, fig.cap = "Maps of top end of 90 percent income estimate (left) and bottom end of 90 percent income estimate (right).", fig.align='center'}
 library(RColorBrewer)
@@ -356,11 +378,11 @@ print(P1, split=c(1, 1, 2, 1), more=TRUE)
 print(P2, split=c(2, 1, 2, 1), more=FALSE) 
 ```
 
+### Assessing confidence in spatial patterns
 
-### Problems in mapping uncertainty
+While the maps presented earlier in this chapter offer ways to visualize uncertainty—such as margins of error or standard errors—they do not fully address a key reason we map data in the first place: to compare values across space. In spatial analysis, we are often interested in identifying patterns of high or low values and ranking regions accordingly. However, these comparisons assume that the observed estimates are stable and that their relative order will persist across samples. This assumption is problematic.
 
-Attempting to convey uncertainty using the aforementioned maps fails to highlight the reason one chooses to map values in the first place: that is to compare values across a spatial domain. More specifically, we are interested in identifying spatial patterns of high or low values. What is implied in the above maps is that the estimates will always maintain their order across the polygons. In other words, if one polygon's estimate is greater than all neighboring estimates, this order will always hold true if another sample was surveyed. But this assumption is incorrect. Each polygon (or county in the above example) can derive different estimates independently from its neighboring polygon. 
-Let's look at a bar plot of our estimates.
+To illustrate this, we begin by examining confidence interval plots for each polygon. These plots reveal that many regions have overlapping intervals, meaning that their true values could plausibly fall above or below those of neighboring regions. For example, a county that appears to have a lower income than its neighbor may, in fact, have a higher income if a different sample were taken. This overlap undermines the reliability of spatial rankings and calls into question the robustness of apparent patterns.
 
 ```{r f07-MoE-plot1, message=FALSE,warning=FALSE,echo=FALSE,fig.width = 5, fig.height = 3.0, fig.fullwidth = FALSE, fig.cap = "Income estimates by county with 90 percent confidence interval. Note that many counties have overlapping estimate ranges.", fig.align='center'}
 library(gplots)
@@ -379,15 +401,11 @@ mtext("Income ($)", side= 1,line=2)
 par(OP)
 ```
 
-Note, for example, how Piscataquis county's income estimate (grey point in the graphic) is lower than that of Oxford county. If another sample of the population was surveyed in each county, the new estimates could place Piscataquis *above* Oxford county in income rankings as shown in the following example:
+Consider, for instance, Piscataquis County, whose income estimate (represented by the gray point in the plot) appears lower than that of neighboring Oxford County. At first glance, this suggests a clear ranking between the two. However, when we examine their confidence intervals, we see substantial overlap—indicating that this apparent difference may not be statistically reliable. If a new sample were drawn from each county, the resulting estimates could easily shift, potentially placing Piscataquis above Oxford in income rankings. The following example illustrates how such reversals can occur when uncertainty is taken into account.
 
 
 ```{r f07-sim-values, message=FALSE,warning=FALSE,echo=FALSE,fig.width = 5, fig.height = 3.0, fig.fullwidth = FALSE, fig.cap = "Example of income estimates one could expect to sample based on the 90 percent confidence interval shown in the previous plot.", fig.align='center'}
 
-# ===================================================================
-# =====   Custom Normal distribution ================================
-# ===================================================================
-#
 # This function creates a normal distribution that is capped
 # at the lower limit by 0 or X - SE * number of SE and at the
 # upper limit by X + SE * number of SE
@@ -417,9 +435,9 @@ mtext("Income ($)", side= 1,line=2)
 par(OP)
 ```
 
-Note how, in this sample, Oxford's income drops in ranking below that of Piscataquis and Franklin counties. A similar change in ranking is observed for Sagadahoc county which drops down *two* counties: Hancock and Lincoln.
+In one such simulated sample, Oxford County’s income estimate drops below that of both Piscataquis and Franklin counties—reversing the original ranking. A similar shift is observed for Sagadahoc County, which falls behind two other counties, Hancock and Lincoln. These changes underscore how uncertainty can affect not just individual estimates, but the broader spatial hierarchy we infer from mapped data. What appears to be a clear pattern in the original map may, in fact, be a fragile construct shaped by sampling variability.
 
-How does the *estimated income* map compare with the *simulated income* map?
+How do the spatial patterns in the **original** estimated income map hold up when uncertainty is introduced? By comparing it with a **simulated** income map--generated from values sampled within each county’s confidence interval--we can begin to assess the stability of observed rankings and the reliability of apparent spatial patterns.
 
 ```{r f07-sim-map, message=FALSE,warning=FALSE,echo=FALSE,fig.width = 5, fig.height = 3.0, fig.fullwidth = TRUE, fig.cap = "Original income estimate (left) and realization of a simulated sample (right).", fig.align='center'}
 library(RColorBrewer)
@@ -452,15 +470,18 @@ raster::spplot(s1, c("R1","R2","R3","R4","R5"),at=brks, col.regions=brewer.pal(7
 brks <- c(0,20600, 22800,25000,27000,34000)
 ```
 
-There is no single solution to effectively convey both estimates *and* associated uncertainty in a map. Sun and Wong [@DataQuality2010] offer several suggestions dependent on the context of the problem. One approach adopts a class comparison method whereby a map displays both the estimate and a measure of whether the MoE surrounding that estimate extends beyond the assigned class. For example, if we adopt the classification breaks [`r sprintf("%i ",brks)`], we will find that many of the estimates' MoE extend beyond the classification breaks assigned to them.
+Effectively conveying both estimates and their associated uncertainty in a single map remains a challenge. As Sun and Wong [@DataQuality2010] note, the appropriate strategy often depends on the context and purpose of the analysis. One useful approach is the **class comparison method**, which evaluates whether a polygon’s margin of error (MoE) extends beyond the boundaries of its assigned classification. In this method, the map displays not only the estimated value but also whether the confidence interval surrounding that estimate crosses into adjacent classes. 
+
+For example, if we adopt the classification breaks [`r sprintf("%i ",brks)`], we find that many polygons have MoEs that span multiple class boundaries. 
 
 ```{r compInt, message=FALSE, warning=FALSE, echo=FALSE, fig.width = 5, fig.height = 3.0, fig.fullwidth = FALSE, fig.cap = "Income estimates by county with 90 percent confidence interval. Note that many of the counties' MoE have ranges that cross into an adjacent class.", fig.align='center'}
 
 # Plot the estimate along with the MoE
 OP <- par(mar=c(3,6,0,1))
 plotCI(Y,1:16, ui= Y+(1.645*YSE), li=(Y-1.645*YSE),pch=16, lwd=1, barcol="red",
-       sfrac=.005, err="x", col="grey50", ylab = "", xlab="", axes=FALSE, gap=0.5)
-axis(1, cex.axis=0.8)
+       sfrac=.005, err="x", col="grey50", ylab = "", xlab="", axes=FALSE, gap=0.5,
+       xlim = c(19000 , 34100))
+axis(1, cex.axis=0.8, at = brks)
 axis(2, at=1:16, labels=lbs,las=2,cex.axis=0.8)
 mtext("Income ($)", side= 1,line=2)
 abline(v=brks, col=rgb(0,.6,0), lty = 3)
@@ -490,87 +511,14 @@ sp::plot(s1, density = dens[s1$Comp], angle = ang[s1$Comp], add=TRUE)
 par(OP)
 ```
 
+## Summary
 
-### Problem when performing bivariate analysis
+This chapter explores statistical approaches to mapping continuous spatial data, focusing on how classification schemes influence the interpretation of choropleth maps. Building on the visual principles introduced in the previous chapter, it introduces methods such as equal interval, quantile, boxplot, interquartile range (IQR), and standard deviation classifications. Each technique offers a different lens for revealing spatial patterns and understanding data distributions.
 
-Data uncertainty issues do not only affect choropleth map presentations but also affect bivariate or multivariate analyses where two or more variables are statistically compared. One popular method in comparing variables is the regression analysis where a line is best fit to a bivariate scatterplot. For example, one can regress "percent not schooled"" to "income"" as follows:
+The chapter also introduces outlier maps, which emphasize extreme values using statistical definitions derived from boxplots, standard deviations, or quantiles. These maps are particularly useful for identifying regions that deviate sharply from the norm.
 
-```{r, echo=FALSE}
-M1  <- lm(s1$NoSchool * 100 ~ s1$Income)
-SM1 <- summary(M1)
-AM1 <- anova(M1)
-```
+A major emphasis is placed on mapping uncertainty--especially in datasets derived from surveys. Techniques such as confidence interval plots, simulated sample maps, and class comparison overlays are used to assess the reliability of spatial rankings and classifications. These methods highlight the fragility of apparent patterns and promote more cautious, statistically informed interpretations of mapped data.
 
-```{r, echo=FALSE}
-SDplot = function(X,Y,x.lab,y.lab) {
-  sdX = sd(X,na.rm=T)   # Compute x SD
-  sdY = sd(Y, na.rm=T)  # Compute y SD
-  muX = mean(X,na.rm=T)
-  muY = mean(Y,na.rm=T)
-  a   = muY - sdY/sdX * muX  # Get y-intercept for SD line
-  #
-  OP <- par(pty="s")
-  plot(Y ~ X, asp = (sdX/sdY),pch=16,cex=0.7,col="grey",ylab=NA, las=1,xlab=NA,axes=F)
-  box()
-  axis(1,cex.axis=.7, labels=TRUE,padj=-2)
-  axis(2, cex.axis=.7, las=1)
-  mtext(y.lab, side=3, adj= -1 ,cex=0.8)
-  mtext(x.lab,side=1, line = 1.2, cex=0.8)
-  abline(v = muX,lty = 3, col="grey")   # Plot SDx = 0
-  abline(h = muY,lty = 3, col="grey")   # Plot SDy = 0
- par(OP)
-}
-```
-
-
-```{r f07-regression1, fig.height=2.5, echo=FALSE, fig.cap="Regression between percent not having completed any school grade and median per capita income for each county.", fig.align='center'}
-OP <- par(mar=c(2,2,1,1))
-SDplot(s1$Income,s1$NoSchool * 100,x.lab="Income",y.lab="% No school")
-abline( M1, col="red" )
-par(OP)
-```
-
-The $R^2$ value associated with this regression analysis is `r round(SM1$r.squared,2)` and the p-value is `r round(AM1$Pr[1],3)`.
-
-But another realization of the survey could produce the following output:
-
-```{r, echo=FALSE}
-set.seed(7); s1$S1 <- rnorml(s1$NoSchool , s1$NoSchoolSE, 1.645) # Generate new % not schooled
-M  <- lm(s1$S1 * 100 ~ s1$R1)
-SM <- summary(M)
-AM <- anova(M)
-```
-
-```{r f07-regression2, fig.height=2.5, echo=FALSE, fig.cap="Example of what a regression line could look like had another sample been surveyed for each county.", fig.align='center'}
-OP <- par(mar=c(2,2,1,1))
-#plot(S$S1 ~ S$R1, pch=20, xlab="Income", ylab="% not schooled")
-SDplot(s1$R1,s1$S1 * 100,x.lab="Income",y.lab="% No school")
-abline( M, col="red" )
-abline(M1, col="black", lty=2)
-par(OP)
-```
-
-With this new (simulated) sample, the $R^2$ value dropped to `r round(SM$r.squared,2)` and the p-value is now `r round(AM$Pr[1],3)`--a much less significant relationship then computed with the original estimate! In fact, if we were to survey  1000 different samples within each county we would get the following range of regression lines:
-
-```{r f07-regression-envelope, fig.height=2.5, echo=FALSE, fig.cap = "A range of regression lines computed from different samples from each county.", fig.align='center'}
-OP <- par(mar=c(2,2,1,1))
-SDplot(s1$Income,s1$NoSchool * 100,x.lab="Income",y.lab="% No school")
-
-# Run lm model with randomly sampled data
-for (i in 1:1000){
-  Xi = rnorml(s1$Income, s1$IncomeSE, 1.645)
-  Yi = rnorml(s1$NoSchool, s1$NoSchoolSE, 1.645)
-  Mi = lm(Yi * 100 ~ Xi)
-  abline(Mi,col=rgb(0,0,0,0.05))
-}
-
-# Plot regression line
-M1 = lm(s1$NoSchool * 100 ~ s1$Income)
-abline(M1,col="red")
-par(OP)
-```
-
-These overlapping lines define a *type* of confidence interval (aka confidence envelope). In other words, the true regression line between both variables lies somewhere within the dark region delineated by this interval.
 
 
 
