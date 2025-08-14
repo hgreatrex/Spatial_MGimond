@@ -474,7 +474,7 @@ Effectively conveying both estimates and their associated uncertainty in a singl
 
 For example, if we adopt the classification breaks [`r sprintf("%i ",brks)`], we find that many polygons have MoEs that span multiple class boundaries. 
 
-```{r compInt, message=FALSE, warning=FALSE, echo=FALSE, fig.width = 5, fig.height = 3.0, fig.fullwidth = FALSE, fig.cap = "Income estimates by county with 90 percent confidence interval. Note that many of the counties' MoE have ranges that cross into an adjacent class.", fig.align='center'}
+```{r compInt, message=FALSE, warning=FALSE, echo=FALSE, fig.width = 5.5, fig.height = 3.0, fig.fullwidth = FALSE, fig.cap = "Income estimates by county with 90 percent confidence interval. Note that many of the counties' MoE have ranges that cross into an adjacent class.", fig.align='center'}
 
 # Plot the estimate along with the MoE
 OP <- par(mar=c(3,6,0,1))

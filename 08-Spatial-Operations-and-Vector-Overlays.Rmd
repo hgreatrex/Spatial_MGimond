@@ -19,31 +19,35 @@ knitr::knit_hooks$set(no.mar = function(before, options, envir) {
   if (before) par(mar = c(0, 0, 0, 0))  # no margins
 })
 
-
-
 ```
 # Spatial Operations and Vector Overlays
 
+# Introduction
+
+Spatial operations are at the heart of GIS analysis. Whether you're querying features based on their attributes or analyzing how layers interact spatially, these tools allow us to extract meaningful insights from geographic data. This chapter introduces three core operations: selection by attribute, selection by location, and vector overlay. Each is illustrated with examples and figures to help clarify how they work in practice.
 
 ## Selection by Attribute
 
-Features in a GIS layer can be selected graphically or by querying attribute values. For example, if a GIS layer represents land parcels, one could use the *Area* field to select all parcels having an area greater than 2.0 acres. 
-
-**Set algebra** is used to define conditions that are to be satisfied while **Boolean algebra** is used to combine a *set* of conditions. 
+GIS layers often contain rich attribute data that can be queried to isolate features of interest. For example, if a layer represents land parcels, we might want to select all parcels with an area greater than 2.0 acres. This is where **set algebra** and **Boolean** logic come into play.
 
 ### Set Algebra
 
-Set algebra consists of four basic operators: 
+Set algebra includes basic comparison operators:
 
  * less than (`<`), 
  * greater than (`>`), 
  * equal to (`=`)
  * not equal to (`<>`).
 
-> In some programming environments (such as R and Python), the equality condition is presented as **two** equal signs, `==`, and not one. In such an environment `x = 3` is interpreted as "*pass the value 3 to x*" and `x == 3` is interpreted as "*is x equal to 3?*.
+> In some programming environments (such as R and Python), the equality condition is expressed using **two** equal signs, `==`, and not one. In such an environment `x = 3` is interpreted as "*pass the value 3 to x*" and `x == 3` is interpreted as "*is x equal to 3?*.
 
 
-If you have a GIS layer of major cities and you want to identify all census tracts having a population count greater than 50000, you would write the expression as `"POP" > 50000` (of course, this assumes that the attribute field name for population count is `POP`).
+Suppose we want to select all cities with a population greater than 50,000. Assuming the population field is named `POP`, the expression would be:
+
+```
+"POP" > 50000
+```
+In ArcGIS, one would use the `Select Layer by Attributes` tool.
 
 ```{r f08-sel1, echo=FALSE, fig.cap = "An example of the *Select Layer by Attributes* tool in ArcGIS Pro  where the pull-down menu is used to define the selection.", out.width=358}
 
@@ -55,22 +59,28 @@ knitr::include_graphics("img/Select_attribute_1.jpg")
 knitr::include_graphics("img/Select_attribute_2.jpg")
 ```
 
+
 ```{r f08-sel1-result, echo=FALSE, fig.cap = "Selected cities meeting the criterion are shown in cyan color in ArcGIS Pro."}
 knitr::include_graphics("img/Select_cities.svg")
 ```
 
-
-The result of this operation is a selected subset of the Cities point layer. Note that in most GIS applications the selection process *does not* create a new layer.
+Note that most GIS platforms do not create a new layer when performing selections—they simply highlight the matching features.
 
 ### Boolean Algebra
 
-You can combine conditions from set algebra operations using the following Boolean algebra operators: 
+Boolean logic allows us to combine multiple conditions:
 
- * `or` (two conditions *can* be met), 
- * `and` (two conditions *must* be met), 
+ * `or` (either conditions *can* be met), 
+ * `and` (both conditions *must* be met), 
  * `not` (condition *must not* be met).
- 
-Following up with the last example, let's now select cities having a population greater than 50000 and that are in the US (and not Canada or Mexico). Assuming that the country field is labeled `FIPS_CNTRY` we could setup the expression as `"POP" > 50000 AND "FIPS_CNTRY" = US`. Note that a value need not be numeric. In this example we are asking that an attribute value equal a specific string value (i.e. that it equal the string `'US'`).
+
+Let’s refine our previous example. Suppose we want to select cities with a population over 50,000 that are located in the United States. If the country field is labeled `FIPS_CNTRY`, the expression would be:
+
+``` 
+`"POP" > 50000 AND "FIPS_CNTRY" = US`
+```
+
+Once the query is executed, the selected cities are highlighted in cyan:
 
 
 ```{r sel3, echo=FALSE, fig.cap = "Selected cities meeting  where POP &gt; 50000  AND  FIPS_CNTRY == US criteria are shown in cyan color."}
@@ -82,15 +92,21 @@ knitr::include_graphics("img/Select_cities_2.svg")
 
 ## Selection by location
 
-We can also select features from *one* GIS layer based on their spatial association with *another* GIS layer. This type of spatial association can be broken down into four categories: **adjacency** (whether features from one layer *share* a boundary with features of another), **containment** (whether features from one layer are *inside* features of another), **intersection** (whether features of one layer *intersect* features of another), and **distance** (whether one feature is within a certain *distance* from another).
+In addition to attribute queries, GIS allows us to select features based on their spatial relationship to other layers. These relationships include:
 
-Continuing with our working example, we might be interested in `Cities` that are within 100 miles of earthquakes. The earthquake points are from another GIS layer called `Earthquakes`. 
++ **Adjacency** features that share a boundary
++ **Containment** features that are entirely within another
++ **Intersection**  features that overlap
++ **Distance** features within a specified proximity
+
+For example, we might want to select cities that are within `100 miles` of recorded earthquake events. The earthquake data comes from a separate layer named `Earthquakes.` 
 
 ```{r f08-loc1, echo=FALSE, fig.cap = "An example of a *Select Layer by Location* tool in ArcGIS Pro. The spatial association chosen is distance.", out.width=300}
 
 knitr::include_graphics("img/Select_location_1.jpg")
 ```
 
+This generates the following selection:
 
 ```{r f08-loc1-map, echo=FALSE, fig.cap = "Selected cities meeting the criterion are shown in cyan color.", out.width=300}
 knitr::include_graphics("img/Cities_earthquakes.svg")
@@ -99,34 +115,33 @@ knitr::include_graphics("img/Cities_earthquakes.svg")
 
 ## Vector Overlay
 
-<aside>
-The concept of *vector overlay* is not new and goes back many decades--even before GIS became ubiquitous. It was once referred to as **sieve mapping** by land use planners who combined different layers--each mapped onto separate transparencies--to isolate or eliminate areas that did or did not meet a set of criteria.
-</aside>
 
-Map overlay refers to a group of procedures and techniques used in combining information from different data layers. This is an important capability of most GIS environments. Map overlays involve at least two input layers and result in at least one new output layer. A basic set of overlay tools include **clipping**, **intersecting** and **unioning**.
+Vector overlay is a foundational concept in GIS, dating back to pre-digital methods like sieve mapping, where planners used transparent layers to identify suitable areas for development. Today, vector overlay involves combining two or more layers to produce a new output layer. The three most common overlay operations are: **clipping**, **intersecting** and **unioning**.
 
-### Clip
+### Clipping
 
-**Clipping** takes one GIS layer (the *clip* feature) and another GIS layer (the to-be-clipped input feature). The output is a clipped version of the original input layer. The output attributes table is a subset of the original attributes table where only records for the clipped polygons are preserved.
+**Clipping**  uses one layer (the clip feature) to trim another layer (the input feature). The result is a subset of the input layer, restricted to the area defined by the clip feature. Only the attributes of the input layer are retained.
 
 ```{r f08-clip, fig.cap = "The Maine counties polygon layer is clipped to the circle polygon. Note that the ouput layer is limited to the county polygon geometry and its attributes (and does not include the clipping circle polygon).", echo=FALSE}
 knitr::include_graphics("img/Clip.svg")
 ``` 
 
-### Intersect
+### Intersecting
 
-**Intersecting** takes both layers as inputs then outputs the features from both layers that share the same spatial extent. Note that the output attribute table inherits attributes from *both* input layers (this differs from *clipping* where attributes from just one layer are carried through).
+**Intersecting** combines two layers and outputs only the features that share spatial overlap. The resulting layer inherits attributes from both input layers.
 
 ```{r f08-intersect, fig.cap = "The Maine counties polygon layer is intersected with the circle polygon. The ouput layer combines both intersecting geometries and attributes.", echo=FALSE}
 knitr::include_graphics("img/Intersect.svg")
 ``` 
 
-### Union
+### Unioning
 
-**Unioning** overlays both input layers and outputs *all* features from the two layers. Features that overlap are intersected creating new polygons. This overlay usually produces more polygons than are present in both input layers combined. The output attributes table contains attribute values from *both* input features (note that only a *subset* of the output attributes table is shown in the following figure).
+**Unioning** overlays both input layers and retains all features from both. Where features overlap, new polygons are created. The output layer typically contains more polygons than either input layer alone, and includes attributes from both sources. Areas without overlap may be assigned `NULL` or zero values.
 
 ```{r f08-union, fig.cap = "The Maine counties polygon layer is unioned with the circle polygon. The ouput layer combines both (complete) geometries and attributes. Where spatial overlaps do not occur, most software will either assign a NULL value or a 0.", echo=FALSE}
 knitr::include_graphics("img/Union.svg")
 ``` 
 
+## Summary
 
+This chapter introduced key spatial operations used in GIS, focusing on how we select and manipulate geographic features based on their attributes and spatial relationships. We explored selection by attribute using set and Boolean algebra, and demonstrated how spatial selection can be based on proximity, containment, or intersection with other layers. We then examined vector overlay techniques--clip, intersect, and union--which allow us to combine multiple layers and extract meaningful spatial intersections. 

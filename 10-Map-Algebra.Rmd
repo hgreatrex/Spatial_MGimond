@@ -1,12 +1,17 @@
----
-output: html_document
-editor_options: 
-  chunk_output_type: console
----
 # Map Algebra {#chp10_0}
 
- **Dana Tomlin** [@DTomlin] is credited with defining a framework for the analysis of field data stored as gridded values (i.e. rasters). He coined this framework *map algebra*. Though gridded data can be stored in a vector format, map algebra is usually performed on raster data. Map algebra operations and functions are broken down into four groups: **local**, **focal**, **zonal** and **global**. Each is explored in the following
-sections.
+## Introduction
+
+Cartographic modeling is a structured approach to geographic analysis that uses a language of operations to interpret spatial data. These operations are organized into functional categories that describe how data values are transformed and combined across geographic space. The modeling system, as developed by **Dana Tomlin** [@DTomlin] is built around three core spatial contexts:
+
++ **Local operations**: Compute new values for each location based on data explicitly associated with that location, often across one or more layers.
+
++ **Focal operations**: Compute values based on the surrounding neighborhood of each location. These neighborhoods can be defined by distance, direction, travel cost, or visibility.
+
++  **Zonal operations**: Aggregate data across defined zones, which are mutually exclusive and collectively exhaustive areas of the study region.
+
+In addition to these, O'Sullivan and Unwin [@Unwin1] propose a fourth category: **global operations**. These refer to analytical functions that consider *all* locations in a dataset simultaneously, such as calculating overall statistics, evaluating spatial autocorrelation, or computing Euclidean distances to nearest features.
+
 
 ```{r echo=FALSE}
 library(raster)
@@ -34,9 +39,9 @@ values(r) = seq(1 : ncell(r))
 
 ## Local operations and functions
 
-Local operations and functions are applied to each individual cell and only involve those cells sharing the same location. 
+Local operations are the most fundamental type of cartographic modeling function. They compute a new value for each location based solely on the data explicitly associated with that same location—either from a single layer or from multiple layers. 
 
-For example, if we start off with an original raster, then multiply it by 2 then add 1, we get a new raster whose cell values reflect the series of operations performed on the original raster cells. This is an example of a **unary** operation where just one single raster is involved in the operation.
+For instance, starting with an original raster layer, we might apply a sequence of operations—first multiplying each cell value by 2, then adding 1. The result is a new raster in which each cell reflects the cumulative effect of those operations applied to the corresponding cell in the original layer. This is an example of a **unary operation**, where only a single raster is involved in the computation.
 
 ```{r f10-local01, echo=FALSE, fig.cap = "Example of a local operation where  `output=(2 * raster + 1)`.", fig.width=5, fig.height=3}
 
@@ -48,7 +53,7 @@ gp(sg,1)
 
 ```
 
-More than one raster can be involved in a local operation. For example, two rasters can be summed (i.e. each overlapping pixels are summed) to generate a new raster.
+Local operations can also involve multiple raster layers. For example, two rasters can be added together by summing the values of overlapping cells, resulting in a new raster where each cell reflects the combined value from the corresponding cells in the input layers.
 
 ```{r f10-local02, echo=FALSE, fig.cap = "Example of a local operation where `output=(input1+input2)`. Note how each cell output only involves input raster cells that share the same exact location.", fig.width=7, fig.height=3}
 l2 <- r - r + runif(length(r), 0,10)   # Apply basic operations to r, assign output to l1
@@ -59,7 +64,7 @@ gp(sg,1)
 ```
 
 
-Local operations also include **reclassification** of values. This is where a range of values from the input raster are assigned a new (common) value. For example, we might want to reclassify the input raster values as follows:
+Local operations also include **reclassification**, where a range of input raster values is assigned a new, common value. This technique is useful for grouping data into meaningful categories. For example, we might reclassify the input raster values as follows:
 
  Original values  Reclassified values
 ----------------  --------------------
@@ -84,10 +89,9 @@ gp(sg,1)
 
 ## Focal operations and functions
 
-> Focal operations are also referred to as *neighborhood* operations.
+Focal operations differ from local operations in that they consider the values of neighboring cells when computing a new value for each location. Instead of looking only at a single cell, focal functions examine a defined neighborhood--such as the eight adjacent cells surrounding a central location.
 
-
-Focal operations assign to the output cells some summary value (such as the mean) of the neighboring cells from the input raster. For example, a cell output value can be the average of all 9 neighboring input cells (including the center cell); this acts as a *smoothing function*.
+For example, a focal operation might calculate the average of all neighboring cell values and assign that average to the central cell. This approach is useful for **smoothing** data, detecting spatial patterns, and identifying transitions across a surface.
 
 ```{r f10-focal01, echo=FALSE, fig.cap = "Example of a focal operation where the output cell values take on the average value of neighboring cells from the input raster. Focal cells surrounded by non-existent cells are assigned an `NA` in this example.", message=FALSE, warning=FALSE, fig.height=2.9, fig.width=5}
 
@@ -102,7 +106,7 @@ gp(sg,1,"%2.1f")
 
 ```
 
-Notice how, in the above example, the edge cells from the output raster have been assigned a value of `NA` (No Data). This is because cells outside of the extent have no value. Some GIS applications will ignore the missing surrounding values and just compute the average of the available cells as demonstrated in the next example.
+Notice in the example above that the edge cells in the output raster have been assigned a value of `NA` (No Data). This occurs because the neighborhood around those edge cells extends beyond the raster’s boundary, where no values exist. Some GIS applications handle this differently—they may ignore the missing surrounding cells and compute the average using only the available neighboring values, as demonstrated in the next example.
 
 ```{r f10-focal02, echo=FALSE, fig.cap = "Example of a focal operation where the output cell values take on the average value of neighboring cells from the input raster. Surrounding non-existent cells are ignored.", message=FALSE, warning=FALSE, fig.height=3, fig.width=5}
 
@@ -117,9 +121,9 @@ gp(sg,1,"%2.1f")
 
 ```
 
-Focal (or neighbor) operations require that a window region (a **kernel**) be defined. In the above examples, a simple 3 by 3 kernel (or window) was used in the focal operations. The kernel can take on different dimensions and shape such as a 3 by 3 square where the central pixel is ignored (thus reducing the number of neighbors to 8) or a circular neighbor defined by a radius.
+Focal (or neighborhood) operations require the definition of a window region, commonly referred to as a **kernel**. In the examples above, a simple 3×3 kernel was used, where each cell’s value was influenced by its immediate neighbors. The kernel itself can vary in both size and shape—for instance, a 3×3 square where the central cell is excluded (resulting in eight neighbors), or a circular neighborhood defined by a specified radius.
 
-```{r f10-focal03, echo=FALSE, fig.cap = "Example of a focal operation where the kernel is defined by a 3 by 3 cell *without* the center cell and whose output cell takes on the average value of those neighboring cells. ", message=FALSE, warning=FALSE, fig.height=3, fig.width=5}
+```{r f10-focal03, echo=FALSE, fig.cap = "Example of a focal operation where the kernel is defined by a 3 by 3 cell *without* the center cell, and whose output cell takes on the average value of those neighboring cells. ", message=FALSE, warning=FALSE, fig.height=3, fig.width=5}
 
 r2 = raster(ncol=10, nrow=10, xmn=0, xmx=100, ymn=0, ymx=100)
 set.seed(123)
@@ -133,7 +137,7 @@ gp(sg,1,"%2.1f")
 
 ```
 
-In addition to defining the neighborhood shape and dimension, a kernel also defines the weight each neighboring cell contributes to the summary statistic. For example, all cells in a 3 by 3 neighbor could each contribute 1/9^th^ of their value to the summarized value (i.e. equal weight). But the weight can take on a more complex form defined by a function; such weights are defined by a **kernel function**. One popular function is a **Gaussian** weighted function which assigns greater weight to nearby cells than those further away.
+n addition to defining the shape and size of the neighborhood, a kernel also specifies the weight each neighboring cell contributes to the summary statistic. For example, in a 3×3 neighborhood, each cell might contribute an equal weight of 1/9^th^ to the final value. However, weights can also be defined using more complex functions--these are known as **kernel functions**. One commonly used kernel function is the **Gaussian**, which assigns greater weight to cells closer to the center and less to those farther away.
 
 ```{r f10-focal04, echo=FALSE, fig.cap = "Example of a focal operation where the kernel is defined by a Gaussian function whereby the closest cells are assigned a greater weight.", message=FALSE, warning=FALSE, fig.height=3, fig.width=5}
 
@@ -151,7 +155,9 @@ gp(sg,1,"%2.1f")
 
 ## Zonal operations and functions
 
-A zonal operation computes a new summary value (such as the mean) from cells aggregated for some zonal unit. In the following example, the cell values from the raster layer are aggregated into three zones whose boundaries are delineated in red. Each output zone shows the average value of the cells within that zone.
+Zonal operations differ from local and focal operations in that they summarize values across defined zones rather than individual cells or neighborhoods. A zone is a group of cells that share a common value on a separate raster layer—often representing administrative boundaries, land parcels, or other categorical regions.
+
+In the following example, the cell values from the raster layer are aggregated into three zones whose boundaries are delineated by red polygons. Each output zone shows the average value of the cells within that zone.
 
 ```{r f10-zonal01, echo=FALSE, fig.cap = "Example of a zonal operation where the cell values are averaged for each of the three zones delineated in red.", message=FALSE, warning=FALSE, fig.height=3.5, fig.width=6}
 
@@ -191,11 +197,11 @@ grid.arrange(p1, p2, ncol=2)
 
 ```
 
-This technique is often used with rasters derived from remotely sensed imagery (e.g. NDVI) where areal units (such as counties or states) are used to compute the average cell values from the raster.
+While rasters can be used to define zones, it's more common for a GIS to have a polygon layer define the zones.
 
 ## Global operations and functions
 
-Global operations and functions may make use of some or all input cells when computing an output cell value. An example of a global function is the *Euclidean Distance* tool which computes the shortest distance between a pixel and a source (or destination) location. In the following example, a new raster assigns to each cell a distance value to the closest cell having a value of 1 (there are just two such cells in the input raster).
+Global operations and functions may use some or all input cells when computing the value of each output cell. A common example is the **Euclidean Distance** tool, which calculates the shortest straight-line distance between each cell and a specified source or destination. In the example below, a new raster assigns to each cell the distance to the nearest cell with a value of 1--note that only two such cells exist in the input raster.
 
 ```{r f10-global01, echo=FALSE, fig.cap = "Example of a global function: the Euclidean distance. Each pixel is assigned its closest distance to one of the two source locations (defined in the input layer).", message=FALSE, warning=FALSE, fig.height=3, fig.width=5}
 
@@ -220,7 +226,7 @@ Operations and functions applied to gridded data can be broken down into three g
 
 ### Mathematical operators and functions
 
-Two mathematical operators have already been demonstrated in earlier sections: the *multiplier* and the *addition* operators. Other operators include division and the modulo (aka the modulus) which is the remainder of a division. Mathematical *functions* can also be applied to gridded data manipulation. Examples are square root and sine functions. The following table showcases a few examples with ArcGIS and R syntax.
+Two mathematical operators have already been demonstrated in earlier sections: the *multiplier* and the *addition* operators. Other operators include division and the modulo (also known as the modulus) which is the remainder of a division. Mathematical *functions* can also be applied to gridded data manipulation. Examples are square root and sine functions. The following table showcases a few examples with ArcGIS and R syntax.
 
 Operation | ArcGIS Syntax | R Syntax | Example
 ----------|--------|--------|--------
@@ -341,3 +347,7 @@ gp(sg,1, sfmt="%2.0f", fnts=4)
 ```
 
 > Note that most software environments assign the ampersand character, `&`, to the `AND` Boolean operator.
+
+## Summary
+
+In this chapter, we explored the foundational concepts of Map Algebra, a framework for performing spatial analysis using raster data. We examined how local, focal, zonal, and global operations each contribute to different types of spatial reasoning. Local operations focus on individual cells, focal operations incorporate neighborhood context, zonal operations summarize values across defined regions, and global operations consider the entire raster dataset. 

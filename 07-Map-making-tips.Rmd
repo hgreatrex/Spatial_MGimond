@@ -1,16 +1,18 @@
 # Good Map Making Tips
 
+## Introduction
 
+While this course does not focus on cartography, it’s important to recognize that how we present spatial data can significantly influence how it’s interpreted. Even the most rigorous analysis can be undermined by poor map design. This chapter offers a brief overview of practical map-making principles--not as a deep dive into cartographic theory, but as a guide to help you avoid common pitfalls and make thoughtful design choices.
 
-## Elements of a map
+We’ll walk through examples of both ineffective and improved maps, highlighting how layout, color, typography, and supporting elements like legends and scale bars contribute to a map’s clarity and impact. The goal here isn’t to master cartographic technique, but to develop an eye for what makes a map readable, purposeful, and appropriate for its audience.
 
-A map can be composed of many different map elements. They may include: Main map body, legend, title, scale indicator, orientation indicator, inset map and source and ancillary information.
+## Elements of a Map
 
-Not all elements need to be present in a map. In fact, in some cases they may not be appropriate at all. A scale bar, for instance, may not be appropriate if the coordinate system used does not preserve distance across the map's extent. 
+Maps often include a variety of elements: the main map body, legend, title, scale bar, orientation indicator (e.g., north arrow), inset map, and source or ancillary information.
 
-Knowing why and for whom a map is being made will dictate its layout. If it's to be included in a paper as a figure, then parsimony should be the guiding principle. If it's intended to be a standalone map, then additional map elements may be required. 
+Not all elements are necessary in every map. In fact, some may be inappropriate depending on the context. For example, a scale bar may be misleading if the coordinate system used does not preserve distance uniformly across the map’s extent.
 
-Knowing the intended audience should also dictate what you will convey and how. If it's a general audience with little technical expertise then a simpler presentation may be in order. If the audience is well versed in the topic, then the map may be more complex. 
+The purpose and audience of the map should guide its layout. If the map is intended for inclusion in a paper or report, simplicity and clarity should take precedence. If it’s a standalone map, additional elements may be warranted. Similarly, a general audience may benefit from a cleaner, less technical presentation, while a more specialized audience might appreciate added detail.
 
 ```{r f06-map, echo=FALSE, fig.cap = "Map elements. Note that not all elements are needed, nor are they appropriate in some cases. Can you identify at least one element that does not belong in the map (hint, note the orientation of the longitudinal lines; are they parallel to one another? What implication does this have on the North direction and the placement of the North arrow? src. Esri)", fig.height=4, fig.align='center'}
 
@@ -19,20 +21,20 @@ knitr::include_graphics("img/Map_elements.png", dpi = NA)
 
 
 
-## How to create a *good* map
+## How to Create a *Good* Map
 
-Here's an example of a map layout that showcases several bad practices.
+Let’s begin with a cautionary example—a map layout that demonstrates several poor design choices.
 
 ```{r Bad-map, echo=FALSE, fig.cap = "Example of a *bad* map. Can you identify the problematic elements in this map? ", fig.align='center'}
 
 knitr::include_graphics("img/Bad_map.jpg")
 ```
 
-+ A good map establishes a **visual hierarchy** that ensures that the most important elements are at the top of this hierarchy and the least important are at the bottom. Typically, the top elements should consist of the main map body, the title (if this is a standalone map) and a legend (when appropriate).
++ A good map establishes a clear **visual hierarchy**, ensuring that the most important elements—typically the main map body, title (if standalone), and legend—are visually dominant. Supporting elements like scale bars and north arrows should be placed lower in the hierarchy unless they serve a critical navigational purpose.
 
-+ When showcasing Choropleth maps, it's best to limit the **color swatches** to less than a dozen--it becomes difficult for the viewer to tie too many different colors in a map to a color swatch element in the legend. Also, classification breaks should not be chosen at random but should be chosen carefully; for example adopting a quantile classifications scheme to maximize the inclusion of the different color swatches in the map; or a classification system designed based on logical breaks (or easy to interpret breaks) when dictated by theory or cultural predisposition.
++ When designing choropleth maps, limit the number of **color swatches** to fewer than twelve. Too many colors can overwhelm the viewer and make it difficult to match map regions to legend categories. Classification breaks should be chosen deliberately—quantile schemes can help distribute colors evenly across the map, while theory-driven breaks may better reflect meaningful thresholds.
 
-+ **Scale bars** and **north arrows** should be used judiciously and need *not* be present in *every* map. These elements are used to measure orientation and distances. Such elements are critical in reference maps such as USGS Topo maps and navigation maps but serve little purpose in a thematic map where the goal is to highlight *differences* between aerial units. If, however, these elements are to be placed in a thematic map, reduce their visual prominence (see Figure \@ref(fig:ScaleBar) for examples of scale bars). The same principle applies to the selection of an orientation indicator (north arrow) element. Use a small north arrow design if it is to be placed low in the hierarchy, larger if it is to be used as a reference (such as a nautical chart).
++ **Scale bars** and **north arrows** should be used judiciously. They are essential in reference maps (e.g., USGS topographic maps) but often unnecessary in thematic maps, where the focus is on comparing values across regions rather than measuring distances. If included, these elements should be visually subtle.
 
 
 ```{r ScaleBar, echo=FALSE, fig.cap = "Scale bar designs from simplest (top) to more complex (bottom). Use the simpler design if it's to be placed low in the visual hierarchy.", fig.align='center'}
@@ -40,10 +42,9 @@ knitr::include_graphics("img/Bad_map.jpg")
 knitr::include_graphics("img/ScaleBar.svg")
 ```
 
-+ **Title** and other **text elements** should be concise and to the point. If the map is to be embedded in a write-up such as a journal article, book or web page, title and text(s) elements should be omitted in favor of figure captions and written description in the accompanying text.
++ **Title** and other **text elements** should be concise. If the map is embedded in a report or article, these elements can be omitted in favor of figure captions and accompanying text.
 
-Following the aforementioned guidelines can go a long way in producing a *good* map. Here, a divergent color scheme is chosen whereby the two hues converge to the median income value. A coordinate system that minimizes distance error measurements and that preserves "north" orientation across the main map's extent is chosen since a scale bar and north arrow are present in the map. The inset map (lower left map body) is placed lower in the visual hierarchy and could be omitted if the intended audience was familiar with the New England area. A unique (and unconventional) legend orders the color swatches in the order in which they appear in the map (i.e. following a strong north-south income gradient).
-
+Let’s now look at an improved map layout that applies these principles. A divergent color scheme is used to highlight variation around a median income value. The coordinate system preserves distance and orientation, justifying the inclusion of a scale bar and north arrow. The inset map is placed low in the hierarchy and could be omitted for audiences familiar with the region. The legend is ordered to reflect the spatial gradient in the data.
 
 ```{r Good-map, echo=FALSE, fig.cap = "Example of an *improved* map.", fig.align='center'}
 knitr::include_graphics("img/Good_map.jpg")
@@ -51,17 +52,22 @@ knitr::include_graphics("img/Good_map.jpg")
 
 ## Typefaces and Fonts
 
-Maps may include text elements such as labels and ancillary text blocks. The choice of typeface (font family) and font (size, weight and style of a typeface) can impact the legibility of the map. A rule of thumb is to limit the number of fonts to two: a **serif** and a **sans serif** font.
+Typography plays a subtle but important role in map design. A general rule is to limit the number of fonts to two: a **serif** and a **sans serif** font.
 
 ```{r f06-serif, echo=FALSE, fig.cap = "Serif fonts are characterized by brush strokes at the letter tips (circled in red in the figure). Sans Serif fonts are devoid of brush strokes.", fig.align='center'}
 knitr::include_graphics("img/Fonts.svg")
 ```
 
+Serif fonts are typically used for natural features such as rivers, lakes, and mountain ranges. Sans serif fonts are better suited for human-made features like roads, cities, and administrative boundaries.
 
-Serif fonts are generally used to label natural features such as mountain ridges and water body names. Sans serif fonts are usually used to label anthropogenic features such as roads, cities and countries.
-
-Varying the typeset size across the map should be avoided unless a visual hierarchy of labels is desired. You also may want to stick with a single font color across the map unless the differences in categories need to be emphasized. In the following example, a snapshot of a map before (left) and after (right) highlight how manipulating typeset colors and styles (i.e. italic, bold) can have a desirable effect **if done properly**.
+Avoid excessive variation in font size unless you are intentionally creating a hierarchy of labels. Likewise, stick to a single font color unless you need to distinguish between categories. The following example shows how thoughtful use of font style and color can improve legibility and feature separation.
 
 ```{r f06-typeset, echo=FALSE, fig.cap = "The lack of typeset differences makes the map on the left difficult to differentiate county names from lake/river names. The judicious use of font colors and style on the right facilitate the separation of features.", out.width=600, fig.align='center'}
 knitr::include_graphics("img/labels.png")
 ```
+
+## Summary
+
+In this chapter, we explored the essential principles of effective map design, emphasizing clarity, purpose, and audience awareness. A good map is not just visually appealing--it communicates spatial information with precision and intent. By establishing a clear visual hierarchy, limiting unnecessary elements, and choosing appropriate color schemes and fonts, a map can guide viewers toward meaningful interpretation. 
+
+We also examined how scale bars, north arrows, and text elements should be used thoughtfully, and how typographic choices can enhance legibility. Through examples of poor and improved map layouts, we highlighted the importance of deliberate design decisions. Ultimately, good map making is about balancing aesthetics with function, ensuring that every element serves the story the map is meant to tell.
