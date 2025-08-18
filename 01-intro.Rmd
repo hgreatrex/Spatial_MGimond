@@ -43,20 +43,16 @@ knitr::kable(x3, booktabs=TRUE, caption="Index of total African conflict for the
 
 A simple sort on the Conflict column reveals that `r as.vector(x[1:10,]$Country)` are the top ten countries.
 
-What if we are interested in knowing whether countries with a high conflict index score are geographically clustered, does the above table provide us with enough information to help answer this question? The answer, of course, is no. We need additional data pertaining to the geographic location and shape of each country. A map of the countries would be helpful. This example illustrates how spatial patterns can reveal insights beyond tabular data.
-
+What if we are interested in knowing whether countries with a high conflict index score are geographically clustered, does the above table provide us with enough information to help answer this question? The answer, of course, is no. We need additional data pertaining to the geographic location and shape of each country. A map of the countries would be helpful. 
 
 ```{r map-africa, echo=FALSE, fig.cap = "Choropleth representation of African conflict index scores. Countries for which a score was not available are not mapped.", fig.width=5.5, fig.height=5.5}
 
 knitr::include_graphics("img/Africa_conflicts.png", dpi=300)
 ```
 
+This example demonstrates how spatial data can uncover spatial patterns that are invisible in tabular formats. It highlights the importance of integrating location into data analysis. Maps often prioritize spatial relationships, while tables emphasize numerical comparisons. Understanding this hierarchy helps choose the right tool for the question.
 
 Maps are ubiquitous: available online and in various print medium. But we seldom ask how the boundaries of the map features are encoded in a computing environment? After all, if we expect software to assist us in the analysis, the spatial elements of our data should be readily accessible in a digital form. Spending a few minutes thinking through this question will make you realize that simple tables or spreadsheets are not up to this task. A more complex data storage mechanism is required. This is the core of a GIS environment: a spatial database that facilitates the storage and retrieval of data that define the spatial boundaries, lines or points of the entities we are studying. This may seem trivial, but without a spatial database, most spatial data exploration and analysis would not be possible!
-
-This example demonstrates how spatial data can uncover spatial clustering that is invisible in tabular formats. It highlights the importance of integrating location into data analysis.
-
-Maps often prioritize spatial relationships, while tables emphasize numerical comparisons. Understanding this hierarchy helps choose the right tool for the question.
 
 ### GIS software
 
@@ -86,7 +82,7 @@ OP <- par( mar=c(0,0,0,0) )
 par(OP)
 ```
 
-In this course, you’ll learn that while popular GIS software like **ArcGIS Pro** excels at creating and manipulating spatial data, it is limited when it comes to analyzing the patterns and processes that may have produced those data. To move beyond basic data handling and explore deeper spatial relationships, we turn to more robust quantitative tools. One such tool is **R**—a free, open-source data analysis environment.
+In this course, you’ll learn that while popular GIS software like **ArcGIS Pro** excels at creating and manipulating spatial data, it is limited when it comes to analyzing the patterns and processes that may have produced those data. To move beyond basic data handling and explore deeper spatial relationships, we turn to more robust quantitative tools. One such tool is **R**--a free, open-source data analysis environment.
 
 R offers one of the richest collections of spatial data analysis and statistical packages available today. Learning to work in the **R** programming environment will be highly beneficial, as many of the skills you acquire are transferable to a wide range of quantitative analysis tasks, both spatial and non-spatial.
 
@@ -100,7 +96,7 @@ O'Sullivan and Unwin [@Unwin1] use the term **accidental geographer** to describ
 
 The different purposes of mapping spatial data closely parallel the goals of graphing non-spatial data. **John Tukey** [@Tukey1972] identified three broad categories of graphical displays:
 
- * "*Graphs from which numbers are to be read off- substitutes for tables.*
+ * "*Graphs from which numbers are to be read off--substitutes for tables.*
  *  *Graphs intended to show the reader what has already been learned (by some other technique)--these we shall sometimes impolitely call propaganda graphs.*
  *  *Graphs intended to let us see what may be happening over and above what we have already described- these are the analytical graphs that are our main topic.*"
 

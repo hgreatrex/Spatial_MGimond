@@ -1,3 +1,5 @@
+# Spatial Operations and Vector Overlays
+
 ```{r include=FALSE, cache=FALSE}
 knitr::opts_chunk$set(
   comment = "",
@@ -20,9 +22,9 @@ knitr::knit_hooks$set(no.mar = function(before, options, envir) {
 })
 
 ```
-# Spatial Operations and Vector Overlays
 
-# Introduction
+
+## Introduction
 
 Spatial operations are at the heart of GIS analysis. Whether you're querying features based on their attributes or analyzing how layers interact spatially, these tools allow us to extract meaningful insights from geographic data. This chapter introduces three core operations: selection by attribute, selection by location, and vector overlay. Each is illustrated with examples and figures to help clarify how they work in practice.
 
