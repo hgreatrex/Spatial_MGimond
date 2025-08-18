@@ -41,7 +41,7 @@ Set algebra includes basic comparison operators:
  * equal to (`=`)
  * not equal to (`<>`).
 
-> In some programming environments (such as R and Python), the equality condition is expressed using **two** equal signs, `==`, and not one. In such an environment `x = 3` is interpreted as "*pass the value 3 to x*" and `x == 3` is interpreted as "*is x equal to 3?*.
+> In some programming environments (such as R and Python), the equality condition is expressed using **two** equal signs, `==`, and not one. In such an environment `x = 3` is interpreted as "*pass the value 3 to x*" and `x == 3` is interpreted as *"is x equal to 3?"*.
 
 
 Suppose we want to select all cities with a population greater than 50,000. Assuming the population field is named `POP`, the expression would be:
