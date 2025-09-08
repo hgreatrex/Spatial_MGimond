@@ -159,19 +159,24 @@ This section introduces foundational GIS concepts and tools for data manipulatio
 
 This section focuses on statistical analysis of spatial patterns using R.
 
-11. **Point Pattern Analysis**
-    - Centrography
-    - Density and distance-based methods
-
-12. **Hypothesis Testing**
-    - CSR/IRP testing
-    - Monte Carlo simulations
+12. **Spatial Trends**
+    - First order analysis of field variables
+    - Fitting polynomial models
 
 13. **Spatial Autocorrelation**
+    - Second order property of field variables
     - Global and local Moran’s I
-    - Multiple comparison corrections
 
-14. **Spatial Interpolation**
+14. **Point Pattern Analysis: First order analysis**
+    - Density and distance-based methods
+    - Testing for CSR processes
+
+15. **Point Pattern Analysis: Second order analysis**
+    - ANN analysis
+    - K and L functions
+    - Paired correlation function
+
+15. **Spatial Interpolation**
     - Deterministic (IDW, Thiessen) and statistical (Kriging) methods
 
 

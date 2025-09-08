@@ -25,7 +25,13 @@ R is also suited for many traditional GIS tasks involving data manipulation oper
 
 The Appendix explores various aspects of spatial data manipulation and analysis using R. While the course focuses specifically on point pattern analysis and spatial autocorrelation in R,  additional resources are included for students interested in expanding their GIS skills using R.
 
+The resources used as references for this course are listed in the [Reference](references.html). 
+
 ::: {style="color: darkred; background: #EEEEEE; border: 1 px solid grey;border-radius: 10px; padding: 0.5em"}
+<u>2025 UPDATE:</u>
+<ul><li>This version sees a full re-write of Part2: Spatial Analysis. The chapters a better aligned with the the order in which topics are covered in the course with the overarching theme being the distinction between 1st order and 2nd order spatial processes.</li>
+<li> A new chapter on modeling spatial trends is added to Part2</li></ul>
+
 <u>2023 UPDATE:</u>
 <ul><li> Removed dependence on `rgdal` and `maptools` in Appendices</li>
 <li> Added Statistical Maps chapter (wrapped confidence maps into this chapter)</li></ul>
