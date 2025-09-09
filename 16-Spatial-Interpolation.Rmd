@@ -578,3 +578,9 @@ tm_shape(r.m) +  tm_raster(n=10, palette="Reds",
   tm_legend(legend.outside=TRUE)
 
 ```
+
+## Summary
+
+Spatial interpolation techniques are used to **estimate values at unsampled locations** from point data that represent a continuous field. These methods fall into two main categories: **deterministic** and **statistical**. Deterministic methods include proximity (Thiessen) interpolation, which assigns the value of the closest sampled point to an unsampled location, creating a tessellated surface with abrupt changes. Inverse Distance Weighted (IDW) is another deterministic method, calculating an estimated value as a weighted average of nearby points, where weights are inversely proportional to their distance raised to a power coefficient. Jackknifing (leave-one-out cross-validation) and Root Mean Squared Error (RMSE) can quantify the accuracy of these interpolations.
+
+Statistical interpolation methods include trend surfaces and Kriging. Trend surfaces use regression on spatial coordinates to model global trends, with different orders (0th, 1st, 2nd, etc...) representing varying complexity. Ordinary Kriging is a more advanced statistical method that often involves de-trending the data, computing an experimental variogram to measure spatial autocorrelation, fitting a mathematical model (defining nugget, partial sill, and range) to this variogram, and then using this model to calculate localized weighting parameters for interpolation. The final Kriged surface combines the interpolated residuals with the original trend, and a variance map is produced to indicate uncertainty.

@@ -29,8 +29,8 @@ The resources used as references for this course are listed in the [Reference](r
 
 ::: {style="color: darkred; background: #EEEEEE; border: 1 px solid grey;border-radius: 10px; padding: 0.5em"}
 <u>2025 UPDATE:</u>
-<ul><li>This version sees a full re-write of Part2: Spatial Analysis. The chapters a better aligned with the the order in which topics are covered in the course with the overarching theme being the distinction between 1st order and 2nd order spatial processes.</li>
-<li> A new chapter on modeling spatial trends is added to Part2</li></ul>
+<ul><li> This version includes a complete rewrite of "Part 2: Spatial Analysis". The chapters are now more closely aligned with the sequence of topics covered in the course, with an overarching focus on distinguishing between first-order and second-order spatial processes.</li>
+<li> A new chapter on modeling spatial trends has been added to Part 2.</li></ul>
 
 <u>2023 UPDATE:</u>
 <ul><li> Removed dependence on `rgdal` and `maptools` in Appendices</li>
