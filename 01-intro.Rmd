@@ -157,7 +157,7 @@ This section introduces foundational GIS concepts and tools for data manipulatio
 
 ### Part 2: Exploratory Spatial Data Analysis
 
-This section focuses on statistical analysis of spatial patterns using R.
+This section focuses on statistical analysis of spatial patterns.
 
 12. **Spatial Trends**
     - First order analysis of field variables

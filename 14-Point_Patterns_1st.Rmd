@@ -14,7 +14,7 @@ Before diving into formal models of spatial intensity, it's helpful to begin wit
 knitr::include_graphics("img/centrography.svg")
 ```
 
-These point pattern analysis techniques were popular before computers were ubiquitous given that hand calculations are not too involved, but these summary statistics are too concise and hide far more valuable information about the observed pattern.
+These point pattern analysis techniques were popular before computers were ubiquitous as hand calculations were relatively simple. However, these summary statistics are too concise and hide far more valuable information about the observed pattern.
 
 In this section, we introduce density-based methods as a bridge between raw spatial data and more formal modeling of intensity.
 
@@ -68,7 +68,7 @@ Quadrat density analysis involves dividing the study area into sub-regions calle
 
 This method assumes that the intensity of the point process is roughly constant within each quadrat, which may not hold if quadrats are too large or poorly aligned with underlying spatial variation.
 
-Quadrats can take on many different shapes such as hexagons and triangles. In the following example density is computed for square shaped quadrats.
+Quadrats can take various shapes such as hexagons and triangles. In the following example density is computed for square shaped quadrats.
 
 ```{r f11-quad01, fig.cap="An example of a quadrat count where the study area is divided into four equally sized quadrats whose area is 25 square units each. The density in each quadrat can be computed by dividing the number of points in each quadrat by that quadrat's area.", fig.height=2.2, fig.width=2.2, echo=FALSE}
 OP <- par(mar=c(0,0,0,0))
@@ -82,7 +82,7 @@ par(OP)
 
 The choice of quadrat numbers and quadrat shape can influence the measure of local density and must be chosen with care. If very small quadrat sizes are used, you risk having many empty quadrats which may prove uninformative. If very large quadrat sizes are used, you risk missing subtle changes in spatial density distributions such as an east-west gradient in density values.
 
-Instead of dividing the study area into uniform shapes, quadrats can also be defined based on an underlying **covariate**--—a spatial variable believed to influence point intensity (e.g., elevation, land cover, or population density). For example, if it's believed that the underlying point pattern process is driven by elevation, quadrats can be defined by sub-regions such as different ranges of elevation values (labeled 1 through 4 on the right-hand plot in the following example). This can result in quadrats having non-uniform shape and area.
+Instead of dividing the study area into uniform shapes, quadrats can also be defined based on an underlying **covariate**--—a spatial variable believed to influence point intensity (e.g., elevation, land cover, or population density). For example, if it's believed that the underlying point pattern process is driven by elevation, quadrats can be defined by sub-regions such as different ranges of elevation values (labeled 1 through 4 on the right-hand plot in the following example). This can result in quadrats with non-uniform shape and area.
 
 ```{block, type="note"}
 Converting a continuous field into discretized areas is sometimes referred to as **tessellation**. The end product is a **tessellated surface**.
@@ -175,7 +175,7 @@ par(OP)
 
 While the high density in the western part of the study area remains, the density values to the east are no longer consistent across the other three regions.
 
-The quadrat analysis approach has its advantages in that it is easy to compute and interpret however, it does suffer from the [modifiable areal unit problem](https://mgimond.github.io/Spatial/pitfalls-to-avoid.html#maup) (MAUP) as highlighted in the last two examples.
+The quadrat analysis approach has advantages--it is easy to compute and interpret. However, it does suffer from the [modifiable areal unit problem](https://mgimond.github.io/Spatial/pitfalls-to-avoid.html#maup) (MAUP) as highlighted in the last two examples.
 
 Quadrat density is most useful when the study area can be meaningfully divided into regions of interest, or when a covariate provides a natural way to segment space. However, it may be less effective in detecting subtle or continuous spatial variation, which motivates the use of kernel density methods introduced next.
 
@@ -306,7 +306,7 @@ gp.text(sg, nr=1, sfmt="%0.2f", x1=0,x2=cell,y1=0,y2=cell,src=P)
 
 ```
 
-### Nonparametric Intensity Modeling with Covariates
+### Non-parametric Intensity Modeling with Covariates
 
 In the previous section, we learned that we could use a covariate, like elevation, to define the sub-regions (quadrats) within which densities were computed.
 
@@ -346,11 +346,11 @@ grid()
 par(OP)
 ```
 
-A red one-to-one diagonal line is added to the plot. The scatter plot compares the predicted intensity (based on elevation) to the observed kernel density. While the general trend is positive, the relationship is not strictly linear. This deviation may reflect uncertainty in regions with sparse data--such as high elevations--where fewer points lead to less reliable estimates. This uncertainty is very apparent in the $\rho_{elev}$ *vs. elevation* plot where the 95% confidence interval envelope widens at higher elevation values (indicating the greater uncertainty in our estimated $\rho$ value at those higher elevation values). The widening of the confidence envelope at higher elevations reflects increased uncertainty due to fewer observations in those regions--a common issue in spatial modeling when covariate values are unevenly distributed.
+A red one-to-one diagonal line is added to the plot. The scatter plot compares the predicted intensity (based on elevation) to the observed kernel density. While the general trend is positive, the relationship is not strictly linear. This deviation may reflect uncertainty in regions with sparse data, such as high elevations, where fewer points lead to less reliable estimates. This uncertainty is very apparent in the $\rho_{elev}$ *vs. elevation* plot where the 95% confidence interval envelope widens at higher elevation values (indicating the greater uncertainty in our estimated $\rho$ value at those higher elevation values). The widening of the confidence envelope at higher elevations reflects increased uncertainty due to fewer observations in those regions--a common issue in spatial modeling when covariate values are unevenly distributed.
 
 Modeling intensity as a function of a covariate allows us to explore first-order effects more rigorously. It helps determine whether external factors--like elevation or population density--can explain the spatial distribution of points.
 
-This approach provides a nonparametric estimate of how point intensity varies with a covariate, offering insight into first-order effects. The function $\rho(z)$ captures this relationship without assuming a specific parametric form. In the next section, we explore a complementary approach--**Poisson point process modeling**--which allows us to formally specify intensity as a log-linear function of covariates.
+This approach provides a non-parametric estimate of how point intensity varies with a covariate, offering insight into first-order effects. The function $\rho(z)$ captures this relationship without assuming a specific parametric form. In the next section, we explore a complementary approach--**Poisson point process modeling**--which allows us to formally specify intensity as a log-linear function of covariates.
 
 ### Parametric Intensity Modeling with Covariates
 
@@ -422,7 +422,7 @@ The estimated value for $\alpha$ in our example is `r a`. This is interpreted as
 
 The plot below shows the fitted intensity curve as a function of population density, along with a confidence envelope. This visualization helps assess whether the relationship is approximately linear and whether uncertainty increases at extreme covariate values.
 
-```{r f11-pppm01,fig.cap="Poisson point process model fitted to the relationship between Starbucks store locations and population density. The model assumes a loglinear relationship. Note that the density is reported in number of stores per map unit area (the map units are in meters).", message=FALSE, fig.height=2.5, fig.width=3.6, echo=FALSE, results='hide'}
+```{r f11-pppm01,fig.cap="Poisson point process model fitted to the relationship between Starbucks store locations and population density. The model assumes a log-linear relationship. Note that the density is reported in number of stores per map unit area (the map units are in meters).", message=FALSE, fig.height=2.5, fig.width=3.6, echo=FALSE, results='hide'}
 PPM1 <- ppm(P2 ~ pop_im)
 PPM0 <- ppm(P2 ~ 1)
 
@@ -485,7 +485,7 @@ A Poisson point process model (of the the Walmart point pattern) implemented usi
 PPM0
 ```
 
-and the following output for the alternate model.
+and the following output for the alternative model.
 
 ```{r echo=FALSE}
 PPM1
@@ -516,7 +516,7 @@ par(OP)
 #anova(PPM0, PPM1, test="LR")
 ```
 
-The shapes of the fitted model clearly differ between the models, but this does not necessarily imply that the model that includes population density is significantly different from the null model. The relatively wide confidence interval in the covariate-based model, especially at higher population densities, suggests uncertainty in the estimated relationship. This highlights the importance of formal statistical testing to determine whether the observed differences are meaningful.
+The shapes of the fitted model clearly differ between the models, but this does not necessarily imply that the model that includes population density is significantly different from the null model. The relatively wide confidence intervals in the covariate-based model, especially at higher population densities, suggest uncertainty in the estimated relationship. This highlights the importance of formal statistical testing to determine whether the observed differences are meaningful.
 
 To formally assess whether the covariate-based model provides a significantly better fit than the null model, we use a likelihood ratio test. This test compares the log-likelihoods of the two models and evaluates whether the improvement in fit is statistically significant.
 
