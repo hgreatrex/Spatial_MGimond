@@ -2,7 +2,7 @@
 
 ## Introduction
 
-While this course does not focus on cartography, it’s important to recognize that how we present spatial data can significantly influence how it’s interpreted. Even the most rigorous analysis can be undermined by poor map design. This chapter offers a brief overview of practical map-making principles--not as a deep dive into cartographic theory, but as a guide to help you avoid common pitfalls and make thoughtful design choices.
+While this course does not focus on cartography, it’s important to recognize that how we present spatial data can significantly influence how it’s interpreted. Even the most rigorous analysis can be undermined by poor map design. This chapter offers a brief overview of practical map-making principles, not as a deep dive into cartographic theory, but as a guide to help you avoid common pitfalls and make thoughtful design choices.
 
 We’ll walk through examples of both ineffective and improved maps, highlighting how layout, color, typography, and supporting elements like legends and scale bars contribute to a map’s clarity and impact. The goal here isn’t to master cartographic technique, but to develop an eye for what makes a map readable, purposeful, and appropriate for its audience.
 

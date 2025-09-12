@@ -2,7 +2,7 @@
 
 ## Introduction
 
-In the previous chapter, we explored how polynomial functions can be used to model spatial trend—capturing broad, location-driven variation in continuous spatial fields. By fitting and removing global trends, we revealed residuals that may still exhibit spatial structure. This chapter builds on that foundation by introducing **spatial autocorrelation**, a second-order property that describes how values at one location relate to values at nearby locations.
+In the previous chapter, we explored how polynomial functions can be used to model spatial trends that capture broad, location-driven variation in continuous spatial fields. By fitting and removing global trends, we revealed residuals that may still exhibit spatial structure. This chapter builds on that foundation by introducing **spatial autocorrelation**, a second-order property that describes how values at one location relate to values at nearby locations.
 
 This concept is rooted in **Tobler’s First Law of Geography** which states:  
 
@@ -18,9 +18,10 @@ This principle underpins much of spatial analysis. It suggests that spatial data
 knitr::include_graphics("img/Random_maps.png")
 ```
 
-To make the mathematical foundations of autocorrelation more accessible, we shift from raster-based data to a simpler dataset composed of **polygonal areal units** (e.g., counties). This allows us to clearly illustrate how spatial relationships are defined, how spatial weights are constructed, and how measures like **Moran’s I** are computed.
+To make the mathematical foundations of autocorrelation more accessible, we shift from the raster-based data used in the previous chapter to a simpler dataset composed of **polygonal areal units** (e.g., counties). This allows us to clearly illustrate how spatial relationships are defined, how spatial weights are constructed, and how measures like **Moran’s I** are computed.
 
-This chapter focuses on:
+This chapter focuses on: 
+
 - Defining spatial autocorrelation and its role in spatial statistics.
 - Constructing spatial weights to represent neighborhood relationships.
 - Computing and interpreting **global** and **local Moran’s I** statistics.
@@ -28,9 +29,9 @@ This chapter focuses on:
 
 ## Global Moran's *I*
 
-While maps can sometimes reveal clusters of similar values, our visual interpretation is often limited—especially when patterns are subtle or complex. To move beyond subjective impressions, we need a **quantitative and objective measure** of spatial patterning. Specifically, we want to quantify the degree to which similar attribute values are clustered or dispersed across space.
+While maps can sometimes reveal clusters of similar values, our visual interpretation is often limited, especially when patterns are subtle or complex. To move beyond subjective impressions, we need a **quantitative and objective measure** of spatial patterning. Specifically, we want to quantify the degree to which similar attribute values are clustered or dispersed across space.
 
-One widely used statistic for this purpose is **Moran’s *I** , a measure of **global spatial autocorrelation**. It quantifies the overall tendency for features with similar values to be located near one another, based on a defined spatial relationship (e.g., contiguity or distance). In essence, Moran’s *I* is a correlation coefficient between a variable and its spatially lagged counterpart.
+One widely used statistic for this purpose is **Moran’s I** , a measure of **global spatial autocorrelation**. It quantifies the overall tendency for features with similar values to be located near one another, based on a defined spatial relationship (e.g., contiguity or distance). In essence, Moran’s *I* is a correlation coefficient between a variable and its spatially lagged counterpart.
 
 ### Computing the Moran's *I*
 
@@ -64,7 +65,7 @@ ggplot(s, aes(fill=Income)) + geom_sf() +
 
 
 
-It may seem apparent that, when aggregated at the county level, the income distribution appears clustered with high counties surrounded by high counties and low counties surrounded by low counties. But a qualitative description may not be sufficient; we might want to quantify the degree to which similar (or dissimilar) counties are clustered. One measure of this type of relationship is the **Moran's I statistic**.
+It may seem apparent that, when aggregated at the county level, the income distribution appears clustered with high counties surrounded by high counties and low counties surrounded by low counties (note that we are ignoring potential first-order trends here for pedagogical clarity; a spatial trend model could have been discerned). But a qualitative description may not be sufficient; we might want to quantify the degree to which similar (or dissimilar) counties are clustered. One measure of this type of relationship is the **Moran's I statistic**.
 
 The Moran’s *I* statistic is a measure of spatial autocorrelation that quantifies the degree to which similar values (like income) cluster together in space. It is computed as the correlation between a variable and its spatially lagged counterpart, based on a defined spatial weights matrix.
 
@@ -92,12 +93,12 @@ OP <- par( cex = 0.75, tck = -0.01)
 par(OP)
 ```
 
-If there is no degree of association between *Income* and *Income~lag~*, the slope will be close to flat (resulting in a Moran's *I* value near 0). In our working example, the slope is far from flat with a Moran's *I* value is 0.28. So this raises the question: how significant is this Moran's *I* value (i.e. is the computed slope significantly different from 0)? There are two approaches to estimating the significance: an analytical solution and a Monte Carlo solution. The analytical solution makes some restrictive assumptions about the data and thus cannot always be reliable. Another approach (and the one favored here) is a Monte Carlo test. This approach avoids parametric assumptions about the data distribution or spatial layout, relying instead on the assumption that values are exchangeable under the null hypothesis.
+If there is no degree of association between *Income* and *Income~lag~*, the slope will be close to flat (resulting in a Moran's *I* value near 0). In our working example, the slope is far from flat with a Moran's *I* value of 0.28. So this raises the question: how significant is this Moran's *I* value (i.e. is the computed slope significantly different from 0)? There are two approaches to estimating the significance: an analytical solution and a Monte Carlo solution. The analytical solution makes some restrictive assumptions about the data and thus cannot always be reliable. The other approach (and the one favored here) is a Monte Carlo test. This approach avoids parametric assumptions about the data distribution or spatial layout, relying instead on the assumption that values are exchangeable under the null hypothesis.
 
 ### Monte Carlo approach to estimating significance
 
 
-In a Monte Carlo test--specifically a permutation-based bootstrap test--we assess the significance of an observed Moran's *I* statistic by comparing it to a distribution of values generated under the null hypothesis of spatial randomness. This is done by **permuting** the attribute values across spatial units while keeping the spatial structure (e.g., neighborhood relationships) fixed. 
+In a Monte Carlo test (specifically, a permutation-based bootstrap test) we assess the significance of an observed Moran's *I* statistic by comparing it to a distribution of values generated under the null hypothesis of spatial randomness. This is done by **permuting** the attribute values across spatial units while keeping the spatial structure (e.g., neighborhood relationships) fixed. 
 
 For each permutation, the attribute values are shuffled among the polygons and a new Moran's *I* value is computed. 
 
@@ -160,15 +161,15 @@ For example, the Moran's *I* values for income distribution in the state of Main
 knitr::include_graphics("img/MoranI_distance_band.png")
 ```
 
-The plot suggests that there is significant spatial autocorrelation between counties within 25 km of one another, but as the distances between counties increases, autocorrelation shifts from positive to negative, indicating that nearby counties tend to have similar income levels, while counties farther apart tend to be more dissimilar.
+The plot suggests that there is significant spatial autocorrelation between counties within 75 km of one another, but as the distances between counties increases, autocorrelation shifts from positive to negative, indicating that nearby counties tend to have similar income levels, while counties farther apart tend to be more dissimilar.
 
 ## Local Moran's *I*
 
 We can decompose the global Moran's *I* into a *localized* measure of autocorrelation--i.e. a map of "hot spots" and "cold spots".
 
-A local Moran's *I* analysis is best suited for relatively large datasets, especially if a hypothesis test is to be implemented. We'll therefore switch to another dataset: Massachusetts household income data.
+A local Moran's *I* analysis is best suited for relatively large datasets, especially if a hypothesis test is to be implemented. We'll therefore switch to another dataset: Massachusetts (USA) household income data aggregated at the U.S. Census' county subdivision level (as with the Maine dataset,  we ignore potential first-order trends here for pedagogical clarity).
 
-```{r ma-dataset, fig.width = 5, fig.height=2.5, echo =FALSE, fig.align='center'}
+```{r ma-dataset, fig.width = 5, fig.height=2.5, echo =FALSE, fig.cap="Map of 2020 median household income for Massachusetts county subdivisions.", echo = FALSE, message=FALSE, fig.align='center'}
 library(sf)
 library(ggplot2)
 library(classInt)
@@ -540,9 +541,9 @@ $$
  
 Here, $N$ is the total number of spatial units, $X_i$ and $X_j$ are the attribute values at locations $i$ and $j$, $\bar{X}$ is the mean of $X$, and $w_{ij}$ is the spatial weight between locations $i$ and $j$--typically defined by contiguity, distance, or other spatial relationships.
 
-There a few key components of Equation (1) worth highlighting. First, you'll note the standardization of both sets of values by the subtraction of each value in $X_i$ or $X_j$ by the mean of $X$. This highlights the fact that we are seeking to compare the deviation of each value from an overall mean and not the deviation of their absolute values. 
+There are a few key components of Equation (1) worth highlighting. First, you'll note the standardization of both sets of values by the subtraction of each value in $X_i$ or $X_j$ by the mean of $X$. This highlights the fact that we are seeking to compare the deviation of each value from an overall mean and not the deviation of their absolute values. 
 
-Second, you'll note an inverted variance term on the left-hand side of equation (1)--this is a measure of spread. You might recall from an introductory statistics course that the variance can be computed as:
+Second, you'll note an inverted variance term on the left-hand side of equation (1): this is a measure of spread. You might recall from an introductory statistics course that the variance can be computed as:
 
 $$
 s^2 = \frac{\sum\limits_i (X_i-\bar X)^2}{N}\tag{2}
@@ -787,7 +788,7 @@ par(OP)
 
 ## Summary
 
-This chapter introduced spatial autocorrelation as a key concept for understanding second-order spatial structure--how values at one location relate to values at nearby locations. Using Moran’s I as a central tool, we explored both global and local measures of spatial association, emphasizing the importance of spatial weights and neighborhood definitions. Through examples and permutation-based inference, we demonstrated how spatial autocorrelation can be quantified, tested, and interpreted across scales. The chapter concluded with a detailed breakdown of the Moran’s I equation, reinforcing its interpretation as a spatially weighted correlation and laying the groundwork for more advanced spatial statistical techniques.
+This chapter introduced spatial autocorrelation as a key concept for understanding second-order spatial structure: how values at one location relate to values at nearby locations. Using Moran’s I as a central tool, we explored both global and local measures of spatial association, emphasizing the importance of spatial weights and neighborhood definitions. Through examples and permutation-based inference, we demonstrated how spatial autocorrelation can be quantified, tested, and interpreted across scales. The chapter concluded with a detailed breakdown of the Moran’s I equation, reinforcing its interpretation as a spatially weighted correlation.
 
 
 
