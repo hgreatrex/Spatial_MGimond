@@ -27,7 +27,7 @@ library(spatstat)
 library(gridExtra)
 
 # Load Starbucks point locations
-S  <- st_read("./Data/Walmarts.shp")
+S  <- st_read("./Data/Walmarts.shp", quiet = TRUE)
 P <- as.ppp(S)
 marks(P) <- NULL
 
