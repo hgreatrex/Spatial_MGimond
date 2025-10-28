@@ -1,11 +1,37 @@
 # Spatial Autocorrelation {#chp13_0}
 
+## Librarys needed for this tutorial. 
+
+Make sure all of these libraries are at the top of your lab script in a code chunk, and run the code chunk!  If you run the code chunk and it says a package is missing, either click "install" if the little yellow bar appears at the top, or go to the Packages tab, and click Install to go to the package 'app store'.
+
+```{r,message=FALSE, warning=FALSE}
+library(readxl)
+library(tidyverse)
+library(dplyr)
+library(terra)
+library(sf)
+library(tmap)
+library(ggplot2)
+library(ggthemes)
+library(viridis)
+library(RColorBrewer)
+library(plotly)
+library(spatstat)
+library(sfdep)
+library(tidycensus)
+```
+
+## Getting the data
+
+
+
+
+
 ## Introduction
 
-In the previous chapter, we explored how polynomial functions can be used to model spatial trends that capture broad, location-driven variation in continuous spatial fields. By fitting and removing global trends, we revealed residuals that may still exhibit spatial structure. This chapter builds on that foundation by introducing **spatial autocorrelation**, a second-order property that describes how values at one location relate to values at nearby locations.
+In this tutorial, we introduce **spatial autocorrelation**, a property that describes how values at one location relate to values at nearby locations.
 
-This concept is rooted in **Tobler’s First Law of Geography** which states:  
-
+This concept is rooted in **Tobler’s First Law of Geography** which states:
 
 ```{block type="note", eval = FALSE}
 _"The first law of geography: Everything is related to everything else, but near things are more related than distant things."_ Waldo R. Tobler [@Tobler1970] 
@@ -13,19 +39,18 @@ _"The first law of geography: Everything is related to everything else, but near
 
 This principle underpins much of spatial analysis. It suggests that spatial data often exhibit **non-random patterns**, where nearby features tend to have similar attribute values. Spatial autocorrelation provides a formal way to quantify this tendency.
 
-
 ```{r f13-random-maps, echo=FALSE}
 knitr::include_graphics("img/Random_maps.png")
 ```
 
-To make the mathematical foundations of autocorrelation more accessible, we shift from the raster-based data used in the previous chapter to a simpler dataset composed of **polygonal areal units** (e.g., counties). This allows us to clearly illustrate how spatial relationships are defined, how spatial weights are constructed, and how measures like **Moran’s I** are computed.
+To make the mathematical foundations of autocorrelation more accessible, we shift from the point used in the previous chapter to a simpler dataset composed of **polygonal areal units** (e.g., counties). This allows us to clearly illustrate how spatial relationships are defined, how spatial weights are constructed, and how measures like **Moran’s I** are computed.
 
-This chapter focuses on: 
+This chapter focuses on:
 
-- Defining spatial autocorrelation and its role in spatial statistics.
-- Constructing spatial weights to represent neighborhood relationships.
-- Computing and interpreting **global** and **local Moran’s I** statistics.
-- Using permutation-based hypothesis testing to assess significance.
+-   Defining spatial autocorrelation and its role in spatial statistics.
+-   Constructing spatial weights to represent neighborhood relationships.
+-   Computing and interpreting **global** and **local Moran’s I** statistics.
+-   Using permutation-based hypothesis testing to assess significance.
 
 ## Global Moran's *I*
 
@@ -38,32 +63,30 @@ One widely used statistic for this purpose is **Moran’s I** , a measure of **g
 Let's start with a working example: 2020 median per capita income for the state of Maine.
 
 ```{r fig03, fig.height=3, fig.cap="Map of 2020 median per capita income for Maine counties (USA).", echo = FALSE, message=FALSE, fig.align='center'}
-library(sf)
-library(ggplot2)
-library(classInt)
-library(tukeyedar)
-library(spdep)
-options(scipen = 9999)
 
 z <- gzcon(url("https://github.com/mgimond/Spatial/raw/main/Data/Income_schooling_sf.rds"))
 s <- terra::unwrap(readRDS(z))
 
-clint <- classIntervals(s$Income, style = "pretty", n = 5)$brks
-ggplot(s, aes(fill=Income)) + geom_sf() +
-  theme_void() +
-    scale_fill_stepsn(colors = c("#D9EF8B",  "darkgreen") ,
-                     
-                    breaks = clint[2:(length(clint)-1) ],
-                    values = scales::rescale(clint[2:(length(clint)-1) ], c(0,1)),
-                    guide = guide_coloursteps(even.steps = FALSE,
-                                              show.limits = FALSE,
-                                              title = "Income ($)",
-                                              barheight = unit(2.0, "in"),
-                                              barwidth = unit(0.15, "in"),
-                                              label.position = "left")) 
+# Turn off interactive
+tmap_mode("plot") 
+
+# Set color scales
+Income_scale <- tm_scale_intervals(values = "brewer.blues", style = "jenks")
+
+# Add a basemap of your choice 
+# Then plot the income column of your data
+tm_basemap("CartoDB.Voyager") +
+tm_shape(MyData) + 
+  tm_polygons(
+    fill        = "Income",
+    fill.scale  = Income_scale,
+    fill_alpha  = 0.5,
+    fill.legend = tm_legend("Maine average income per county")
+  ) 
+
+
+
 ```
-
-
 
 It may seem apparent that, when aggregated at the county level, the income distribution appears clustered with high counties surrounded by high counties and low counties surrounded by low counties (note that we are ignoring potential first-order trends here for pedagogical clarity; a spatial trend model could have been discerned). But a qualitative description may not be sufficient; we might want to quantify the degree to which similar (or dissimilar) counties are clustered. One measure of this type of relationship is the **Moran's I statistic**.
 
@@ -76,7 +99,6 @@ knitr::include_graphics("img/Diff_neighbors.png")
 ```
 
 Once we've defined a neighborhood for our analysis, we identify the neighbors for each polygon in our dataset then summaries the values for each neighborhood cluster (by computing their mean values, for example). This summarized neighborhood value is sometimes referred to as a spatially lagged value (*X~lag~*). In our working example, we adopt a contiguity neighborhood and compute the average neighboring income value (*Income~lag~*) for each county in our dataset. We then plot *Income~lag~* against *Income* for each county. The Moran's *I* coefficient between *Income~lag~* and *Income* is nothing more than the slope of the least squares regression line that best fits the points *after* standardizing both variables (i.e., converting them to z-scores), which centers them on the mean and scales them by their standard deviation.
-
 
 ```{r fig05, fig.height=4, fig.width = 3.5, echo = FALSE, fig.cap="Scatter plot of spatially lagged income (neighboring income) vs. each countie's income. If we equalize the spread between both axes (i.e. convert to a z-value) the slope of the regression line represents the Moran's *I* statistic.", fig.align='center', results='hide'}
 
@@ -97,11 +119,9 @@ If there is no degree of association between *Income* and *Income~lag~*, the slo
 
 ### Monte Carlo approach to estimating significance
 
+In a Monte Carlo test (specifically, a permutation-based bootstrap test) we assess the significance of an observed Moran's *I* statistic by comparing it to a distribution of values generated under the null hypothesis of spatial randomness. This is done by **permuting** the attribute values across spatial units while keeping the spatial structure (e.g., neighborhood relationships) fixed.
 
-In a Monte Carlo test (specifically, a permutation-based bootstrap test) we assess the significance of an observed Moran's *I* statistic by comparing it to a distribution of values generated under the null hypothesis of spatial randomness. This is done by **permuting** the attribute values across spatial units while keeping the spatial structure (e.g., neighborhood relationships) fixed. 
-
-For each permutation, the attribute values are shuffled among the polygons and a new Moran's *I* value is computed. 
-
+For each permutation, the attribute values are shuffled among the polygons and a new Moran's *I* value is computed.
 
 ```{r fig06, fig.height=4.1, fig.width = 4, fig.cap="Results from 199 permutations. Plot shows Moran's *I* lines (in gray) computed from each random permutation of income values. The observed Moran's *I* line for the original dataset is shown in red.", fig.align='center', echo = FALSE, results='hide'}
 
@@ -141,7 +161,7 @@ Note that in this permutation example, we shuffled the observed income values am
 
 Alternatively, one can choose to randomly assign a set of values to each feature in a data layer from a *theorized distribution* (for example, a *Normal* distribution). This may result in a completely different set of values for each permutation outcome. Note that you would only adopt this approach if the theorized distribution underpinning the value of interest is known *a priori*.
 
-Another important consideration when computing a permutation-based p-value from a permutation test is the number of simulations to perform. In the above example we ran 199 permutations, thus, the smallest p-value we could possibly come up with is 1 / (199 + 1) or a p-value of 0.005. You should  therefore chose a number of permutations, $N$, large enough to allow for finer resolution of p-values and more robust inference.
+Another important consideration when computing a permutation-based p-value from a permutation test is the number of simulations to perform. In the above example we ran 199 permutations, thus, the smallest p-value we could possibly come up with is 1 / (199 + 1) or a p-value of 0.005. You should therefore chose a number of permutations, $N$, large enough to allow for finer resolution of p-values and more robust inference.
 
 ## Moran's *I* at different distance bands
 
@@ -167,7 +187,7 @@ The plot suggests that there is significant spatial autocorrelation between coun
 
 We can decompose the global Moran's *I* into a *localized* measure of autocorrelation--i.e. a map of "hot spots" and "cold spots".
 
-A local Moran's *I* analysis is best suited for relatively large datasets, especially if a hypothesis test is to be implemented. We'll therefore switch to another dataset: Massachusetts (USA) household income data aggregated at the U.S. Census' county subdivision level (as with the Maine dataset,  we ignore potential first-order trends here for pedagogical clarity).
+A local Moran's *I* analysis is best suited for relatively large datasets, especially if a hypothesis test is to be implemented. We'll therefore switch to another dataset: Massachusetts (USA) household income data aggregated at the U.S. Census' county subdivision level (as with the Maine dataset, we ignore potential first-order trends here for pedagogical clarity).
 
 ```{r ma-dataset, fig.width = 5, fig.height=2.5, echo =FALSE, fig.cap="Map of 2020 median household income for Massachusetts county subdivisions.", echo = FALSE, message=FALSE, fig.align='center'}
 library(sf)
@@ -270,7 +290,7 @@ OP <- par(mar= c(0,0,0,0), mfrow=c(1,5))
 par(OP)
 ```
 
-You'll note that even though the income value remains the same in the polygon of interest, its local Moran's *I* statistic will change because of the changing income values in its surrounding polygons. 
+You'll note that even though the income value remains the same in the polygon of interest, its local Moran's *I* statistic will change because of the changing income values in its surrounding polygons.
 
 If we perform many more permutations, we come up with a distribution of $I_i$ values under the null that the income values are randomly distributed across the state of Massachusetts. The distribution of $I_i$ for the above example is plotted using a histogram.
 
@@ -331,7 +351,7 @@ OP2 <- par(mfrow = c(1,2), cex = 0.75, tck = -0.01)
 par(OP2)
 ```
 
-You'll note that the levels of significance do not apply to just the high-high and low-low regions, they can apply to *all* combinations of highs and lows. 
+You'll note that the levels of significance do not apply to just the high-high and low-low regions, they can apply to *all* combinations of highs and lows.
 
 Another example, where the $I_i$ values are filtered based on a more stringent significance level of 0.01, is shown in the following figure.
 
@@ -440,7 +460,7 @@ lisar <- local_moran(queen_w, ma["rnd"], permutations = 9999)
 plot_clust(poly=ma, rnd = "rnd",lisa=lisar,  p= TRUE)
 ```
 
-Note how some $I_i$ values are associated with low permutation-based p-value. In fact, one polygon's $I_i$ value is associated with permutation-based p-value of 0.001 or less! This is to be expected since the likelihood of finding a significant $I_i$ increases the more permutation tests are performed. Here we have 343 polygons, thus we ran 343 tests. This is analogous to having multiple opportunities to pick an ace of spades from a deck of cards--the more opportunities you have, the greater the chance of grabbing an ace of spades. 
+Note how some $I_i$ values are associated with low permutation-based p-value. In fact, one polygon's $I_i$ value is associated with permutation-based p-value of 0.001 or less! This is to be expected since the likelihood of finding a significant $I_i$ increases the more permutation tests are performed. Here we have 343 polygons, thus we ran 343 tests. This is analogous to having multiple opportunities to pick an ace of spades from a deck of cards--the more opportunities you have, the greater the chance of grabbing an ace of spades.
 
 Another example of a local Moran's I test on a realization of a randomly reshuffled set of income values is shown next:
 
@@ -451,7 +471,7 @@ lisar <- local_moran(queen_w, ma["rnd"],permutations = 9999)
 plot_clust(poly=ma, rnd = "rnd",lisa=lisar, p= TRUE)
 ```
 
-We have quite a few $I_i$ values associated with a very low permutation-based p-value (The smallest p-value in this example is `r min(lisar$p_vals)`). This would lead one to assume that several polygons exhibit significant levels of spatial autocorrelation with their neighbors when in fact this is due to chance--a classic example of a Type I error resulting from multiple comparisons. 
+We have quite a few $I_i$ values associated with a very low permutation-based p-value (The smallest p-value in this example is `r min(lisar$p_vals)`). This would lead one to assume that several polygons exhibit significant levels of spatial autocorrelation with their neighbors when in fact this is due to chance--a classic example of a Type I error resulting from multiple comparisons.
 
 To further illustrate the issue, consider generating 200 independent realizations of a random spatial process. Each realization involves computing permutation-based p-values for all polygons, resulting in a large number of tests and an increased likelihood of false positives. This generates 200 x 323 permutation-based p-values. With this working example, about 10% of the outcomes result in a permutation-based p-value of 0.05 or less.
 
@@ -481,7 +501,7 @@ This problem is known in the field of statistics as the **multiple comparison pr
 
 There are at least a couple of different implementation of FDR. One implementation starts by ranking the permutation-based p-values, $p$, from smallest to largest and assigning a rank, $i$, to each value. Next, a reference value is computed for each rank as $i(\alpha/n)$ where $\alpha$ is the desired significance cutoff value (0.05, for example) and $n$ is the total number of observations (e.g. polygons) for which a permutation-based p-value has been computed (343 in our working example). All computed $p_i$ values that are less than $i(\alpha/n)$ are deemed significant at the desired $\alpha$ value.
 
-Applying the FDR correction to the permutation-based p-value cutoff of 0.05 in the household income data gives us the following cluster map. 
+Applying the FDR correction to the permutation-based p-value cutoff of 0.05 in the household income data gives us the following cluster map.
 
 ```{r  fig14d, echo=FALSE, fig.width =9, fig.height=4, fig.cap="Clusters deemed significant at the p=0.05 level when applying the FDR correction.", fig.align='center', results = "hide"}
 
@@ -503,7 +523,6 @@ OP2 <- par(mfrow = c(1,2), cex = 0.75, tck = -0.01)
  par(OP)
 par(OP2)
 ```
-
 
 Applying the FDR correction to the permutation-based p-value cutoff of 0.01 generates even fewer clusters:
 
@@ -528,7 +547,7 @@ OP2 <- par(mfrow = c(1,2), cex = 0.75, tck = -0.01)
 par(OP2)
 ```
 
-It's important to note that there is no one perfect solution to the multiple comparison problem. This, and other challenges facing inferential interpretation in a spatial framework such as the potential for overlapping neighbors (i.e. same polygons used in separate permutation tests) make traditional approaches to interpreting  significance challenging. It is thus recommended to interpret these tests with caution.
+It's important to note that there is no one perfect solution to the multiple comparison problem. This, and other challenges facing inferential interpretation in a spatial framework such as the potential for overlapping neighbors (i.e. same polygons used in separate permutation tests) make traditional approaches to interpreting significance challenging. It is thus recommended to interpret these tests with caution.
 
 ## Moran's *I* equation explained
 
@@ -538,24 +557,22 @@ $$
 I = \frac{N}{\sum\limits_i (X_i-\bar X)^2} 
     \frac{\sum\limits_i \sum\limits_j w_{ij}(X_i-\bar X)(X_j-\bar X)}{\sum\limits_i \sum\limits_j w_{ij}} \tag{1}
 $$
- 
+
 Here, $N$ is the total number of spatial units, $X_i$ and $X_j$ are the attribute values at locations $i$ and $j$, $\bar{X}$ is the mean of $X$, and $w_{ij}$ is the spatial weight between locations $i$ and $j$--typically defined by contiguity, distance, or other spatial relationships.
 
-There are a few key components of Equation (1) worth highlighting. First, you'll note the standardization of both sets of values by the subtraction of each value in $X_i$ or $X_j$ by the mean of $X$. This highlights the fact that we are seeking to compare the deviation of each value from an overall mean and not the deviation of their absolute values. 
+There are a few key components of Equation (1) worth highlighting. First, you'll note the standardization of both sets of values by the subtraction of each value in $X_i$ or $X_j$ by the mean of $X$. This highlights the fact that we are seeking to compare the deviation of each value from an overall mean and not the deviation of their absolute values.
 
 Second, you'll note an inverted variance term on the left-hand side of equation (1): this is a measure of spread. You might recall from an introductory statistics course that the variance can be computed as:
 
 $$
 s^2 = \frac{\sum\limits_i (X_i-\bar X)^2}{N}\tag{2}
-$$
-Note that a more common measure of variance, the sample variance, where one divides the above numerator by $(n-1)$ can also be adopted in the Moran's *I* calculation.
+$$ Note that a more common measure of variance, the sample variance, where one divides the above numerator by $(n-1)$ can also be adopted in the Moran's *I* calculation.
 
 Equation (1) is thus dividing the large fraction on the right-hand side by the variance. This has for effect of limiting the range of possible Moran's *I* values between -1 and 1 (note that in some extreme cases, $I$ can take on a value more extreme than [-1; 1]). We can re-write the Moran's I equation by plugging in $s^2$ as follows:
 
 $$
 I = \frac{\sum\limits_i \sum\limits_j w_{ij}\frac{(X_i-\bar X)}{s}\frac{(X_j-\bar X)}{s}}{\sum\limits_i \sum\limits_j w_{ij}} \tag{3}
-$$
-Note that here $s\times s = s^2$. You might recognize the numerator as a sum of the product of standardized *z*-values between neighboring features. If we let $z_i = \frac{(X_i-\bar X)}{s}$ and $z_j = \frac{(X_j-\bar X)}{s}$, The Moran's I equation can be reduced to:
+$$ Note that here $s\times s = s^2$. You might recognize the numerator as a sum of the product of standardized *z*-values between neighboring features. If we let $z_i = \frac{(X_i-\bar X)}{s}$ and $z_j = \frac{(X_j-\bar X)}{s}$, The Moran's I equation can be reduced to:
 
 $$
 I = \frac{\sum\limits_i \sum\limits_j w_{ij}(z_i\ z_j)}{\sum\limits_i \sum\limits_j w_{ij}} \tag{4}
@@ -573,8 +590,7 @@ The product $z_iy_i$ is a local measure of spatial autocorrelation, $I_i$. If we
 
 $$
 I_i = z_iy_i  \tag{6}
-$$
-The global Moran's *I* statistic, $I$, is thus the average of all $I_i$ values.
+$$ The global Moran's *I* statistic, $I$, is thus the average of all $I_i$ values.
 
 $$
 I = \frac{\sum\limits_i I_i}{\sum\limits_i \sum\limits_j w_{ij}}  \tag{5}
@@ -705,10 +721,9 @@ y_1 =  \sum\limits_j w_{1j} z_j {}={} & (0)(0.21)+(0.333)(1.17)+(0)(1.5)+...+ \\
 \end{align*}
 $$
 
-Multiplying each neighbor by the standardized weight, then summing these values, is simply computing the neighbor's mean value. 
+Multiplying each neighbor by the standardized weight, then summing these values, is simply computing the neighbor's mean value.
 
 Using the standardized weights generates the following scatter plot. Plot on the left shows the raw values on the *x* and *y* axes; plot on the right shows the standardized values $z_i$ and $y_i = \sum\limits_j w_{ij} z_j$. You'll note that the shape of the point cloud is the same in both plots given that the axes on the left plot are scaled such as to match the standardized scales in both axes.
-
 
 ```{r fig19, echo=FALSE, fig.height=3.5, fig.width=7,  results='hide', fig.cap="Moran's scatter plot with original values on the left and same Moran's I scatter plot on the right using the standardized values $z_i$ and $y_i$." , fig.align='center'}
 
@@ -738,7 +753,7 @@ Note the difference in the point cloud pattern in the above plot from the one ge
 
 ### Local Moran's I
 
-Once a spatial weight is chosen, and both $z_i$ and $y_i$ are computed. We can compute the $z_iy_i$ product for all locations of $i$ thus giving us a measure of the local Moran's I statistic. Taking feature ID of `1` in our example, we compute $I_1(lag) = 0.21 \times 0.93 = 0.19$. Computing $I_i$ for all cells gives us the following plot. 
+Once a spatial weight is chosen, and both $z_i$ and $y_i$ are computed. We can compute the $z_iy_i$ product for all locations of $i$ thus giving us a measure of the local Moran's I statistic. Taking feature ID of `1` in our example, we compute $I_1(lag) = 0.21 \times 0.93 = 0.19$. Computing $I_i$ for all cells gives us the following plot.
 
 ```{r fig20, fig.width =7, fig.height=3.5, results='hide', echo=FALSE, warning=FALSE, fig.align='center', fig.cap="The left plot shows the Moran's I scatter plot with the point colors symbolizing the $I_i$ values. The figure on the right shows the matching $I_i$ values mapped to each respective cell.", fig.align='center'}
 
@@ -761,7 +776,6 @@ par(OP)
 
 Here, we are adopting a different color scheme from that used earlier. Green colors highlight features whose values are surrounded by similar values. These can be either positive values surrounded by standardized values that tend to be positive or negative values surrounded by values that tend to be negative. In both cases, the calculated $I_i$ will be positive. Red colors highlight features whose values are surrounded by dissimilar values. These can be either negative values surrounded by values that tend to be positive or positive values surrounded by values that tend to be negative. In both cases, the calculated $I_i$ will be negative. In our example, two features have a negative Moran's *I* coefficient: cell IDs `7` and `12`.
 
-
 ### Global Moran's I
 
 The Global Moran's *I* coefficient, $I$ is nothing more than a summary of the local Moran's *I* coefficients. Using a standardized weight, $I$ is the average of all $I_i$ values.
@@ -770,8 +784,7 @@ $$
 \begin{pmatrix}
 \frac{`r  paste(round(poly$Istar,2), collapse = "+")`}{\sum\limits_i\sum\limits_j w_{ij}} = 0.446
 \end{pmatrix}
-$$
-In this example, $\sum\limits_i \sum\limits_j w_{ij}$ is the sum of all 256 values in Table (2) which, using standardized weights, sums to 16. 
+$$ In this example, $\sum\limits_i \sum\limits_j w_{ij}$ is the sum of all 256 values in Table (2) which, using standardized weights, sums to 16.
 
 $I$ is thus the slope that best fits the data. This can be plotted using either the standardized values or the raw values.
 
@@ -789,6 +802,3 @@ par(OP)
 ## Summary
 
 This chapter introduced spatial autocorrelation as a key concept for understanding second-order spatial structure: how values at one location relate to values at nearby locations. Using Moran’s I as a central tool, we explored both global and local measures of spatial association, emphasizing the importance of spatial weights and neighborhood definitions. Through examples and permutation-based inference, we demonstrated how spatial autocorrelation can be quantified, tested, and interpreted across scales. The chapter concluded with a detailed breakdown of the Moran’s I equation, reinforcing its interpretation as a spatially weighted correlation.
-
-
-
